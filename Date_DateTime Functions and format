@@ -1,0 +1,47 @@
+
+
+Below is a url for SAS Date functions
+https://online.stat.psu.edu/stat481/lesson/22/22.2
+
+Below are date functions from url above
+date( ) returns today's date as a SAS date value
+today( ) returns today's date as a SAS date value
+mdy(m,d,y) returns a SAS date value from the given month (m), day (d), and year (y) values
+datejul(juldate) converts a Julian date (juldate) to a SAS date value
+yyq(y, q) returns a SAS date value from the given year (y) and quarter (q) 1, 2, 3, or 4
+
+
+
+Below is a url for SAS Time functions
+https://online.stat.psu.edu/stat481/lesson/22/22.5
+
+Below are time functions from url above
+time( ) returns the current time as a SAS time value
+hms(h, m, s) returns a SAS time value for the given hour (h), minutes (m), and seconds (s)
+hour(time) returns the hour portion of a SAS time value (time)
+minute(time) returns the minute portion of a SAS time value (time)
+second(time) returns the second portion of a SAS time value (time)
+
+Below is a url for Datetime info and formats
+https://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/viewer.htm#p1wj0wt2ebe2a0n1lv4lem9hdc0v.htm
+
+Below is a great real world example of datetime;
+data _null_;
+event =datetime();
+put event datetime.;
+/*10NOV05:03:49:19*/
+put event datetime7.;
+/*10NOV05*/
+put event datetime12.;
+/*  10NOV05:03*/
+put event datetime18.;
+/*  10NOV05:03:49:19*/
+put event datetime18.1;
+/*10NOV05:03:49:19.0*/
+put event datetime19.;
+/* 10NOV2005:03:49:19*/
+put event datetime20.1;
+/*10NOV2005:03:49:19.0*/
+put event datetime21.2;
+/*10NOV2005:03:49:19.00*/
+run;

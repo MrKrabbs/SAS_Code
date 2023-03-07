@@ -1,0 +1,23 @@
+/* %let BASE_URI=%sysfunc(getoption(SERVICEBASEURL));  this taught me api calls can be case sensitive */
+
+%let BASE_URI=%sysfunc(getoption(servicesbaseurl));
+
+Filename resp1 TEMP ENCODING='UTF-8';
+
+Proc http method="GET" oauth_bearer=sas_services out=resp1
+    URL="&BASE_URI/jobExecution/jobRequests";
+    HEADERS "Accept"="application/vnd.sas.collection+json"
+    "Accept-Item"="application.sas.summary+json";
+    debug level=3;
+Run;
+
+Libname resp1 json;
+
+/* upon inspecting the resp1 library I know that the table named item holds the list of jobrequests */
+Data work.jobrequests_list;
+    Set resp1.items;
+Run;
+
+%PRN(work.jobrequests_list,200,);
+
+PROC CONTENTS DATA=work.jobrequests_list;

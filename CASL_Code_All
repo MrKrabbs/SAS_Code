@@ -1,0 +1,112 @@
+cas;
+caslib _all_ assign;
+
+PROC CAS;
+aggregation.aggregate / 
+      varSpecs={
+         	{name='UltimateLoss',summarySubset={'SUM'}, columnNames={'UltimateLoss'}}
+			{name='Incremental_Paid_ALAE',summarySubset={'SUM'}, columnNames={'Incremental_Paid_ALAE'}}
+			{name='UltimateLALAE',summarySubset={'SUM'}, columnNames={'UltimateLALAE'}}
+			{name='Cumulative_Paid_Loss',summarySubset={'SUM'}, columnNames={'Cumulative_Paid_Loss'}}
+			{name='UltimateALAE',summarySubset={'SUM'}, columnNames={'UltimateALAE'}}
+			{name='Cumulative_Paid_ALAE',summarySubset={'SUM'}, columnNames={'Cumulative_Paid_ALAE'}}
+			{name='AdjUlt',summarySubset={'SUM'}, columnNames={'AdjUlt'}}
+			{name='IncurredLoss',summarySubset={'SUM'}, columnNames={'IncurredLoss'}}
+			{name='IncurredLALAE',summarySubset={'SUM'}, columnNames={'IncurredLALAE'}}
+			{name='IncurredALAE',summarySubset={'SUM'}, columnNames={'IncurredALAE'}}
+			{name='Incremental_Paid_Loss',summarySubset={'SUM'}, columnNames={'Incremental_Paid_Loss'}}
+      }
+/*  table={caslib="KPMG", name="CLAIMS_RUN", GroupBy={{name="POLICY_YEAR"}},where="evaluation_date='2020-12-31'"}  */
+ table={caslib="KPMG", name="CLAIMS_RUN", GroupBy={{name="POLICY_YEAR"},{name="POLICYNUM"}},where="evaluation_date='2020-12-31'"} 
+casOut={caslib="KPMG", NAME="SUM_LOSS4_MRG2_PREM",REPLACE=TRUE},
+ savegroupbyraw=true, savegroupbyformat=false, raw=true;
+;
+run;
+quit;
+**********************************************************************************************
+proc cas;
+  session casauto;
+table.alterTable /
+caslib="CASUSER"
+columns={{name="P_BAD0",RENAME="GB_P_BAD0"},{name="P_BAD1",RENAME="GB_P_BAD1"},
+{name="EM_CLASSIFICATION",DROP=TRUE},{name="EM_EVENTPROBABILITY",DROP=TRUE},{name="EM_PROBABILITY",DROP=TRUE}}
+name="HMEQ_GB_SCORED"
+;RUN;
+QUIT;
+********************************************************************************
+/* Below will drop records where modified=Y */
+PROC CAS;
+	session casauto;
+table.deleteRows / 
+ table={caslib="KPMG", name="SUM4_MODIFIED",where="modified='Y'"} 
+;
+run;
+quit;
+
+/* below will drop the two columns Var22 and Var23 */
+proc cas;
+  session casauto;
+table.alterTable /
+caslib="KPMG",
+drop={"Var22","Var23"},
+name="POLICY_MOCK_DATA"
+;RUN;
+QUIT;
+
+/* BELOW WILL RENAME OUR POLICY YEAR and Number of Claim Variables to remove the space */
+proc cas;
+  session casauto;
+table.alterTable /
+caslib="KPMG"
+columns={{name="Policy Year",RENAME="Policy_Year"},
+ {name="Number of Claims",RENAME="Number_Of_Claims"}
+}
+name="POLICY_MOCK_DATA"
+;RUN;
+QUIT;
+
+/* BELOW WILL GET ME INFO ON THE TABLE, IN THIS CASE SPECIFICALLY TO SEE IF THE TABLE IS PROMOTED */
+proc cas;
+  session casauto;
+table.tableInfo /
+caslib="KPMG",
+name="SUM4_MODIFIED"
+;RUN;
+QUIT;
+
+/* create a cas view */
+data casuser.t1;
+a=2;id=1;output;
+a=4;id=2;output;
+a=5;id=3;output;
+run;
+
+data casuser.t2;
+e=2;id=1;output;
+e=4;id=2;output;
+e=5;id=3;output;
+run;
+
+proc cas;
+table.view /
+name="myview"
+caslib="casuser"
+replace=true
+tables={{name="t1", caslib="casuser", as="tbl1"},
+{name="t2", caslib="casuser",as="tbl2",keys="tbl1_id=tbl2_id"}
+}
+;
+run;
+quit;
+
+*********************************** below will create unique record id ************
+data mycas.cars3;
+set mycas.cars1;
+rowID = _n_;
+threadID = _threadid_;
+uniqueRowID = _n_ + (_threadid_ * 1E4);
+by make;
+run;
+
+
+

@@ -1,0 +1,112 @@
+proc cas;
+	loadactionset "dataSciencePilot";
+	dataSciencePilot.featureMachine / 
+		table={caslib="CASUSER", name="ONEHOT_AND_STANDARDIZE"} 
+		target="PurePremium" 
+		inputs={"CAT_Car_Type", 
+		"CAT_CarUse", "CAT_Education", "CAT_Gender", "CAT_Marital_Status", 
+		"CAT_Occupation", "CAT_Origination_Source", "CAT_Rating_Category", "Std_Age", 
+		"Std_Bluebook", "Std_Car_Age", "Std_Income", "Std_MotorVehicleRecordPoint", 
+		"Std_Travel_Time"} 
+		copyVars="uniqueRecordID" 
+		explorationPolicy={} 
+		screenPolicy={} 
+		transformationPolicy={missing=False}
+		transformationOut={name="TRANSFORMATION_OUT", replace=True} 
+		featureOut={name="FEATURE_OUT", replace=True} 
+		casOut={name="CAS_OUT", 
+		replace=True} saveState={name="ASTORE_OUT", replace=True};
+	run;
+	fetch / table="FEATURE_OUT";
+	run;
+quit;
+
+
+proc cas;
+  session casauto;
+table.alterTable /
+caslib="CASUSER"
+columns={{name="uniqueRecordID",RENAME="Temp_ID"}}
+name="CAS_OUT"
+;RUN;
+QUIT;
+
+proc cas;
+	loadactionset "dataSciencePilot";
+	dataSciencePilot.featureMachine / 
+		table={caslib="CASUSER", name="PREP_AND_FEATURES"} 
+		target="PurePremium" 
+		inputs={"OCCUPATION"} 
+		copyVars="uniqueRecordID" 
+		explorationPolicy={} 
+		screenPolicy={} 
+		transformationPolicy={missing=True}
+		transformationOut={name="TRANSFORMATION_OUT2", replace=True} 
+		featureOut={name="FEATURE_OUT2", replace=True} 
+		casOut={name="CAS_OUT2", 
+		replace=True} saveState={name="ASTORE_OUT2", replace=True};
+	run;
+	fetch / table="FEATURE_OUT2";
+	run;
+quit;
+
+proc cas;
+  session casauto;
+table.alterTable /
+caslib="CASUSER"
+columns={{name="uniqueRecordID",RENAME="Temp_ID2"}}
+name="CAS_OUT2"
+;RUN;
+QUIT;
+
+proc cas;
+   loadactionset "dataSciencePilot";
+   dataSciencePilot.screenVariables
+                            / table     = "CONT_TRANSFORMS"
+                              casOut    = {name    = "SCREEN_VARIABLES_OUT",
+                                           replace = True}
+                              target    = "purepremium"
+                              screenPolicy = {}
+                              ;
+   run;
+   fetch / table = "SCREEN_VARIABLES_OUT";
+   run;
+quit;
+
+*********** BELOW WILL DERIVE MEDIAN FOR CYLINDERS ************
+ods graphics off;
+ods exclude all;
+ods noresults;
+OPTIONS NONOTES;
+ODS OUTPUT Imputeinfo=WORK.impute_OUT;
+/* ods trace on; */
+proc cas;
+    dataPreprocess.impute /                         
+      table={name="cars_out", GroupBy={name="Cyl_10_Cylinders"}}
+      inputs={"cylinders"}
+      methodInterval="MEDIAN";
+/*       casout={name = "outImpute" replace=True}; */
+/* casOutImputeInformation={name = "ImputInfo" replace=True}; */
+/* copyallvars=true; */
+run;quit;
+/* ods trace off; */
+ods WORK.impute_OUT close;
+ods graphics on;
+ods exclude none;
+ods results;
+OPTIONS NOTES;
+
+*************************************************************************************
+/************************ New Grouping for   Nominal Variables                          *********************************************/
+proc cas;datapreprocess.cattrans /table ={caslib="Public",name="PUREPREM_DATA"} inputs=${Occupation,Education,Rating_Category, Car_Type, MotorVehicleRecordPoint} tech="grouprare" 
+casout={name="rare_out",replace=true} outVarsNamePrefix="Rare" copyallvars=true;run;quit;
+
+
+/*code below will allow the algorith to select the corrrect number of bins */
+proc cas;datapreprocess.cattrans /table ="rare_out" inputs=${Occupation,Education,Rating_Category, Car_Type, MotorVehicleRecordPoint} target="PurePremium" tech="rtree" 
+casout={name="rt_out",replace=true} outVarsNamePrefix="RTree" copyallvars=true;run;quit;
+
+
+
+
+

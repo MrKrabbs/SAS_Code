@@ -1,0 +1,12 @@
+%macro varexist(dsn=class,varname=age);
+%local dsid vnum;
+%let vnum=0;
+%let dsid = %sysfunc(open(&dsn));
+%if &dsid %then %do;
+ %let vnum = %sysfunc(varnum(&dsid,&varname));
+ %let dsid = %sysfunc(close(&dsid));
+%end;
+&vnum
+%mend varexist;
+
+%if %varexist(dsn=work.fs_out,varname=valid) %then %do; %put 'hello world';%end;

@@ -1,0 +1,94 @@
+data casuser.Severity;
+set LABDATA.INSURANCE_DEMO_CS;
+
+/* if Claim_Severity > 1;  THIS ROW HAD NO IMPACT*/
+
+rowID = _n_;
+threadID = _threadid_;
+uniqueRecordID = _n_ + (_threadid_ * 1E4);
+
+CreateClaims=rand('uniform');
+
+FrequencyOfClaims=0;
+
+if CreateClaims < .075 then FrequencyOfClaims=1;
+
+LENGTH CarUse $1.;
+
+CarUse='C';
+if upcase(car_use) = 'PRIVATE' THEN CarUse='P';
+
+
+
+keep 
+
+Claim_Severity Age Bluebook Rating_Category DrivingUnderInfluence 
+		Income Occupation Marital_Status 
+		CarUse Education Revoked Gender MotorVehicleRecordPoint 
+		Car_Age Travel_Time Car_Type uniqueRecordID FrequencyOfClaims ;
+run;
+
+/* proc contents data=casuser.Severity; */
+
+/* skipped reducing records as I was too worried about the impact of having too few records */
+/*  */
+/* data work.divide_by2; */
+/* set casuser.Severity(keep=uniqueRecordID); */
+/*  */
+/* RowNumber=_n_; */
+/* keepRow='N';  */
+/*  */
+/* if RowNumber/2 = int(RowNumber/2) then keepRow='Y'; /*  The data set WORK.DIVIDE_BY2 has 9118 observations and 3 variables */
+/*  */
+/* if keepRow='Y'; */
+/*  */
+/* keep uniqueRecordID; */
+/* run; */
+/*  */
+/* data casuser.keepthese; */
+/* set work.divide_by2; */
+/* run;  */
+/*  */
+/* Did not run the Query called "QueryToCreateSeverityA" */
+
+proc partition data=casuser.Severity partind samppct=60;
+	by FrequencyOfClaims;
+	output out=casuser.PurePremiumA;			
+run;quit;
+
+proc casutil incaslib="PUBLIC" outcaslib="PUBLIC";
+	droptable casdata="FREQUENCY" quiet;
+	droptable casdata="SEVERITY" quiet;
+	droptable casdata="PurePremium" quiet;
+run;quit;
+
+DATA PUBLIC.PurePremium(promote=yes);
+set casuser.PurePremiumA;
+
+Total_Loss_Dollars = Claim_Severity * FrequencyOfClaims;
+
+drop Claim_Severity FrequencyOfClaims;
+run;
+
+DATA PUBLIC.FREQUENCY(promote=yes);
+set casuser.PurePremiumA;
+
+drop Claim_Severity;
+run;
+
+DATA PUBLIC.SEVERITY(promote=yes);
+set casuser.PurePremiumA;
+
+IF (Claim_Severity * FrequencyOfClaims) > 0;
+
+log_Severity = log(Claim_Severity);
+drop FrequencyOfClaims;
+run;
+
+
+/* Save table in CAS */
+proc casutil;
+	save incaslib="PUBLIC" outcaslib="PUBLIC" casdata="Frequency" replace;
+	save incaslib="PUBLIC" outcaslib="PUBLIC" casdata="SEVERITY" replace;
+	save incaslib="PUBLIC" outcaslib="PUBLIC" casdata="PurePremium" replace;
+run;QUIT;

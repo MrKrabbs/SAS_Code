@@ -1,0 +1,17 @@
+/* the macro %symexist checks the macro table to see if the macro variable exists. The default of custom steps for optional objects is to not create */
+/* the macro variable if the object is not used. This is a nice way of checking to see if the step object is used */
+
+
+%if %symexist(vdmml_tbl_1) %then 
+%do;
+%APPLY_VDMML_SCORE(&vdmml_tbl_1.,6);
+%end;
+%else
+%do;
+data CASUSER.TEMP_MERGE;
+	SET CASUSER.TEMP_GLM_SCORES;
+	LENGTH 	P_MDL_6_TYPE $20.;
+	P_MDL_6_TYPE='No Model';
+	P_MDL_6=1;
+RUN;
+%end;

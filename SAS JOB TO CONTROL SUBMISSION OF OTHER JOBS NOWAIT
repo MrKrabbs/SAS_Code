@@ -1,0 +1,59 @@
+%jesutil()
+
+%global DSNAME
+        MYJOBID
+        QUERY_VALUE
+        SERVICESBASEURL
+		JOB_NAME
+		GOOD_RUN
+		SLEEP
+		START_STAMP
+		END_STAMP;
+
+
+%macro SubNoWait(JOB_NAME,DSNAME,EMAILNM);
+/* OPTIONS SYMBOLGEN MLOGIC MPRINT SOURCE SOURCE2; */
+%let SERVICESBASEURL=%sysfunc(getoption(servicesbaseurl));
+%Global ID&JOB_NAME. ;
+
+
+
+%let QUERY_VALUE=FORM('_action'='background' '_program'=%TSLIT(/Public/Job_Chaining/&JOB_NAME) 'sleep'='10' 'JOB_NAME'="&JOB_NAME" 'emailNM'="&EMAILNM" 'dsName'="&DSNAME" );
+
+
+/* The macro does not wait for the jobs to finish execution because _action=background is specified */
+%jobexec_run(baseurl=&SERVICESBASEURL,
+             in=&QUERY_VALUE,
+             jobid_varname=MYJOBID)   
+
+%LET ID&JOB_NAME=&MYJOBID;
+
+ 
+%mend SubNoWait;
+
+
+/*      SUBMIT OUR CLAIM JOBS    */
+%SubNoWait(Claims_A,sashelp.cars,matt.bailey@sas.com);
+%SubNoWait(Claims_B,sashelp.credit,matt.bailey@sas.com);
+%SubNoWait(Claims_C,sashelp.airline,matt.bailey@sas.com);
+
+/*      SUBMIT OUR PREMIUM JOBS  */
+%SubNoWait(Premium_A,sashelp.cars,matt.bailey@sas.com);
+%SubNoWait(Premium_B,sashelp.credit,matt.bailey@sas.com);
+%SubNoWait(Premium_C,sashelp.airline,matt.bailey@sas.com);
+
+/*      WAIT FOR OUR LAST CLAIMS AND PREMIUM JOBS TO FINISH BEFORE WE KICKOFF OUR JOBS TO MERGE CLAIMS + PREMIUM */
+%jobexec_waitfor(baseurl=&SERVICESBASEURL,jobid=&IDClaims_B) ;
+%jobexec_waitfor(baseurl=&SERVICESBASEURL,jobid=&IDPremium_B) ;
+
+/*      CLAIMS AND PREMIUM HAVE FINISHED, KICKOFF MERGE JOB */
+%SubNoWait(Premium_And_Claims_A,sashelp.baseball,matt.bailey@sas.com);
+
+
+
+
+
+
+
+
+

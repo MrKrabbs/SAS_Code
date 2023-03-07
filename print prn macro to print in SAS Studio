@@ -1,0 +1,19 @@
+%macro isBlank(param);
+		%sysevalf(%superq(param)=, boolean) 
+%mend isBlank;
+
+
+%MACRO PRN(DSN,OBZ,WHR);
+	
+	%if %isblank(&WHR) %then
+		%do;
+		PROC PRINT DATA=&DSN(OBS=&OBZ);
+		RUN;
+		%end;
+	%else
+		%do;
+			PROC PRINT DATA=&DSN(OBS=&OBZ);
+			WHERE &WHR;
+			RUN;
+			%end;
+%MEND PRN;

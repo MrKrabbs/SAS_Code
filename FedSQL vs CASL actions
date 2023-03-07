@@ -1,0 +1,128 @@
+
+libname casuser cas DATALIMIT=ALL;
+caslib _all_ assign;
+
+options fullstimer;run; 
+
+
+data work.bigprdsale ;
+set sashelp.prdsale ;
+do i=1 to 30000 ; /* makes a 43 million rows – please lower the value if necessary */
+output ;
+end ;
+run ;
+
+
+/* here is the task\homework around re-loading data that I was referencing */
+
+DATA CASUSER.BigPrdsale;
+set work.bigprdsale;
+run;
+
+
+proc fedsql sessref=CASAUTO _method ;
+   create table CASUSER.BigPrdsale_fed
+   {options replication=0 replace=true} as
+   select country, product, prodtype, sum(actual) as actual, sum(predict) as predict
+   from CASUSER.BigPrdsale
+   group by country, product, prodtype ;
+quit ;
+
+/* That works. But one can also use the aggregate CAS action: */
+
+proc cas ;
+session casauto;
+   aggregation.aggregate result=r status=s /
+      table={caslib="CASUSER",
+         name="BigPrdsale",
+         groupBy={"country","product","prodtype"},
+         vars={"actual","predict"}
+      },
+      varSpecs={
+         {name='PREDICT', summarySubset={'SUM'}, columnNames={'PREDICT'}}
+         {name='ACTUAL', summarySubset={'SUM'}, columnNames={'ACTUAL'}}
+      },
+		saveGroupbyFormat=FALSE, /* This line will remove the variables product_f and prodtype_f from the output */
+      casout={caslib="CASUSER",name="BigPrdsale_aggregate", replace=True, replication=0} ;
+quit ;
+
+/* Or you could also use the summary CAS action: */
+
+proc cas ;
+   simple.summary result=r status=s /
+      inputs={"actual","predict"},
+      subSet={"SUM"},
+      table={caslib="CASUSER",
+         name="BigPrdsale",
+         groupBy={"country","product","prodtype"}
+      },
+        
+      casout={caslib="CASUSER",name="BigPrdsale_summary", replace=True, replication=0} ;
+quit ;
+
+/* The summary CAS action creates one record per measure. So, it has to be transposed to mimic the result of the FedSQL aggregation or the aggregate CAS action: */
+
+proc cas ;
+   transpose.transpose / 
+      table={
+         name='BigPrdsale_SUMMARY',
+         caslib='CASUSER',
+         groupBy={"COUNTRY","PRODUCT","PRODTYPE"}
+      },
+      id={'_Column_'},
+      casOut={name='BigPrdsale_SUMMARY_TR', caslib='CASUSER', replace=true},
+      transpose={'_Sum_'} ;
+quit ;
+
+
+/* I’ve seen more significant improvements  when computed values come into play for by-groups. Let’s have a look at the following sample  */
+/* example where an aggregation is performed on a variable that is computed on the fly using the techniques introduced above: */
+
+/* fedsql aggregation */
+proc fedsql sessref=casauto _method ;
+   create table CASUSER.BigPrdsale_fed_w_NewVars
+   {options replication=0 replace=true} as
+   select country, product, substr(prodtype,1,3) as onTheFly, sum(actual) as actual, sum(predict) as predict
+   from CASUSER.BigPrdsale
+   group by country, product, onTheFly ;
+quit ;
+
+/* aggregate CAS action */
+proc cas;
+   aggregation.aggregate result=r status=s /
+      table={caslib="CASUSER",
+         name="BigPrdsale",
+         groupBy={"country","product","onTheFly"},
+         vars={"actual","predict"},
+         computedVars={{name="onTheFly"}},
+         computedVarsProgram="onTheFly=substr(prodtype,1,3);"
+      },
+	  saveGroupbyFormat=FALSE, /* This line will remove the variables product_f and prodtype_f from the output */
+      varSpecs={
+         {name='PREDICT', summarySubset={'SUM'}, columnNames={'PREDICT'}}
+         {name='ACTUAL', summarySubset={'SUM'}, columnNames={'ACTUAL'}}
+      }
+      casout={caslib="CASUSER",name="BigPrdsale_aggregate_w_NewVars", replace=True, replication=0};
+quit ;
+
+/* summary CAS action aggregation + transpose to mimic same result set */
+proc cas;
+   simple.summary result=r status=s /
+      inputs={"actual","predict"},
+      subSet={"SUM"},
+      table={caslib="CASUSER",
+         name="BigPrdsale",
+         groupBy={"country","product","onTheFly"},
+         computedVars={{name="onTheFly"}},
+         computedVarsProgram="onTheFly=substr(prodtype,1,3);"
+         },
+      casout={caslib="CASUSER",name="BigPrdsale_summary_w_NewVars", replace=True, replication=0} ;
+   transpose.transpose /
+      table={caslib="CASUSER", name="BigPrdsale_summary_w_NewVars",
+          groupBy={"COUNTRY","PRODUCT","onTheFly"}
+      },
+      id={'_Column_'},
+      casOut={caslib="CASUSER", name="BigPrdsale_SUMMARY_TR_w_NewVars", replace=true}, 
+      transpose={'_Sum_'} ;
+quit ;
+

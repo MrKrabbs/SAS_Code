@@ -1,0 +1,26 @@
+/*the table NotUnique will hold all records where PolicyNum is not unique in the table PREAMANDLOSS. The output will have all fields */
+/* conversely the table unique will hold all records where PolicyNum is unique */
+proc cas;
+   loadactionset "deduplication";
+   action deduplication.deduplicate /                   
+      table={caslib="KPMGDATA",name="PREMANDLOSS", 
+      groupBy={name="PolicyNum"}},                         
+      casOut={caslib="casuser",name="NotUnique"}, 
+      noUniqueKeys=true,                                
+      uniqueOut={caslib="casuser",name='unique'};                       
+  
+run;
+quit;
+
+/* below shows grouping using multiple variables */
+proc cas;
+   loadactionset "deduplication";
+   action deduplication.deduplicate /                   
+      table={caslib="KPMGDATA",name="PREMANDLOSS", 
+      groupBy={name="PolicyNum",name="Policy_year"}},                         
+      casOut={caslib="casuser",name="NotUnique"}, 
+      noUniqueKeys=true,                                
+      uniqueOut={caslib="casuser",name='unique'};                       
+  
+run;
+quit;

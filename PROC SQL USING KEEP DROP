@@ -1,0 +1,9 @@
+/* NOTICE WE CAN USE THE KEEP STATEMENT IN SQL */
+PROC SQL;
+select * from DATAFLDR.AIC_TBL_STUDENT(keep=MDL_INPT:);
+QUIT;
+
+/* we can also use the drop  statement */
+proc sql;
+select * from  DATAFLDR.TEMPPARMEST(drop=AGE_U_L CARUSE CAR_TYPE GENDER OCCUPATION BLUEBOOK_U_L CAR_AGE_U_L)  where effect = 'MARITAL_STATUS';
+quit;

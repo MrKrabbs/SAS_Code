@@ -1,0 +1,23 @@
+
+DATA JUNK;
+SET work.tempParameterEstimates(keep=EFFECT PARMNAME AGE GENDER);
+/*delims = ' ,.!';             delimiters: space, comma, period, ... */
+delims='_';
+numWords = countw(PARMNAME, delims);  /* for each line of text, how many words? */
+newWord = scan(PARMNAME,numWords,delims);
+
+/*  */
+/* do i = 1 to numWords;          */
+/*    Level1 = scan(str, i, delims); */
+/*    output; */
+/* end; */
+
+
+Eff_delim='*';
+Level1 = scan(Effect, 1, Eff_delim);
+Level2 = scan(Effect, 2, Eff_delim);
+/* numWords = countw(EFFECT, Eff_delim);  /* for each line of text, how many words? */
+/* newWord = scan(PARMNAME,numWords,delims); */
+
+
+run;

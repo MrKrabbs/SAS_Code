@@ -1,0 +1,15 @@
+
+/*https://blogs.sas.com/content/sasdummy/2018/07/05/if-then-else-sas-programs/ */
+
+
+/* If a file exists, take an action */
+/* else fail gracefully */
+%if %sysfunc(exist(work.result)) %then
+  %do;
+    proc means data=work.result;
+    run;
+  %end;
+%else
+  %do;
+    %PUT WARNING: Missing WORK.RESULT - report process skipped.;
+  %end;

@@ -1,0 +1,146 @@
+cas;
+caslib _ALL_ assign;
+
+data casuser.Severity;
+set PUBLIC.INSURANCE_DEMO_CS;
+
+if Claim_Severity > 1;
+
+keep 
+
+State Claim_Severity Age Bluebook Rating_Category DrivingUnderInfluence 
+		Claim_Flag NumberOfPolicy Income Region Occupation Risk_Score Marital_Status 
+		TIF Car_Use Education Revoked Gender MotorVehicleRecordPoint Urbanicity 
+		Car_Age Travel_Time Car_Type New_Business Policy_Number;
+run;
+
+data casuser.SeverityB;
+set casuser.severity;
+by Policy_Number;
+
+keepflag='N';
+
+if first.Policy_Number then keepflag = 'Y';
+
+Length Claim_Number $20.;
+
+Claim_Number=cats('clm_',substr(Policy_Number,3));
+
+Severity_Target = log(Claim_Severity);
+
+drop NumberOfPolicy Risk_Score Claim_Flag Region State Urbanicity TIF New_Business Claim_Severity Claim_Flag;
+
+run;
+
+data get_row_number;
+Set casuser.SeverityB;
+RowNumber=_n_;
+run;
+
+data no_claimsA;
+set get_row_number;
+where keepflag='N';
+run;
+
+data work.StepATempSeverityB;
+Set get_row_number;
+where keepflag='Y';	
+RowNumber=_n_;
+
+keepRow='N'; 
+
+if RowNumber/4 = int(RowNumber/4) then keepRow='Y'; 
+
+/* if keepRow='Y';  */
+
+drop keepflag;
+run;
+
+data work.TempSeverityB;
+set work.StepATempSeverityB;
+
+
+if keepRow='Y'; 
+
+RowNumber=_n_;
+run;
+
+data work.no_claimsB;
+set work.StepATempSeverityB;
+
+if keepRow='N'; 
+
+run;
+
+data no_claimsA;
+set get_row_number;
+where keepflag='N';
+run;
+
+data work.All_No_Claims;
+set 
+work.no_claimsA
+work.no_claimsB;
+
+ClaimFreq=0;
+run;
+
+data work.TempSeverityC; Set work.TempSeverityB;
+ClaimFreq=1;
+
+if RowNumber/13 = int(RowNumber/13) then ClaimFreq=2;
+if RowNumber/27 = int(RowNumber/27) then ClaimFreq=3;
+
+
+
+run;
+
+data work.claimsAnd_Noclaims;
+set 
+
+work.TempSeverityC
+work.all_no_claims;
+
+make_sure_random=rand('uniform');
+
+drop keeprow keepflag Severity_Target Rownumber Claim_Number Education;
+run;
+
+proc sort data=work.claimsand_noclaims;
+by make_sure_random;
+run;
+
+
+/* proc contents data=work.claimsAnd_Noclaims; */
+
+data casuser.send2_partition;
+set work.claimsand_noclaims;
+
+drop make_sure_random;
+run;
+
+
+
+
+proc partition data=casuser.send2_partition partind samppct=60 samppct2=10;
+	output out=casuser.FrequencyC;			
+run;
+
+proc casutil incaslib="PUBLIC" outcaslib="PUBLIC";
+	droptable casdata="FrequencyC" quiet;
+run;quit;
+
+
+
+proc casutil;
+PROMOTE CASDATA="FrequencyC" INCASLIB="casuser"
+CASOUT="FrequencyC" OUTCASLIB="Public";
+run;quit;	
+
+
+/* Save table in CAS */
+proc casutil;
+	save incaslib="PUBLIC" outcaslib="PUBLIC" casdata="FrequencyC" replace;
+run;QUIT;
+
+

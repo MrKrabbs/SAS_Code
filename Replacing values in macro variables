@@ -1,0 +1,7 @@
+%let have = 1 2 3;
+%let want = %sysfunc(tranwrd(%quote(%trim(&have)),%str( ),%str(,)));
+%put want=&want.;
+
+%let have = 1*2*3  4*5;
+%let want = %sysfunc(tranwrd(%quote(%trim(&have)),%str(*),%str( )));
+%put want=&want.;

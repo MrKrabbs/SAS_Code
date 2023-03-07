@@ -1,0 +1,44 @@
+
+
+/* by putting in the ods trace statement the output(tables) that are sent to the results window will have their names printed in the log so that you can use the ods table name */
+/* to kick out the table into a work library and for use by the analyst */
+ods trace on;
+
+/*** Analyze categorical variables ***/
+      title "Frequencies for Categorical Variables";
+      proc freq data=SASHELP.CARS;
+      tables 
+ Type  Origin  / 
+ plots=(freqplot)       ;
+      run;
+
+/*** Analyze numeric variables ***/
+      title "Descriptive Statistics for Numeric Variables";
+      proc means data=SASHELP.CARS n nmiss min mean median max std;
+         var
+ Weight  Wheelbase          ;
+      run;
+      title ;
+      proc univariate data=SASHELP.CARS noprint;
+         histogram  Weight  Wheelbase ;
+      run;
+
+ods trace off;
+
+/* to output the table to a work dataset use the code below */
+ods output ParameterEstimates=PE2;
+proc genselect data=CASUSER.TWEEDIE_PARTITION;
+  class Car_Type CarUse Occupation Revoked Gender Marital_Status;
+/*   class Car_Type CarUse Occupation Revoked Education Gender Marital_Status Rating_Category Revoked; */
+/* partition role=_PartInd_ (validate='2' test='0' train='1'); */
+partition role=_PartInd_ (validate='0' train='1');
+/*   model PurePremium = Age Bluebook Car_Age Income Travel_Time  */
+/* Car_Type CarUse Occupation Revoked Education Gender Marital_Status Rating_Category Revoked / dist=tweedie; */
+
+  model PurePremium = Age Bluebook Car_Age Income Travel_Time 
+Car_Type CarUse Occupation Revoked Gender Marital_Status / dist=tweedie;
+  selection method=stepwise(choose=sbc stop=sbc select=sbc)   ;
+/* ods output ParameterEstimates=PE2; */
+run;
+
+ods work.PE2 close;

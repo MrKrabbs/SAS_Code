@@ -1,0 +1,22 @@
+data work.my_ds;
+    input my_date;
+    datalines;
+2020
+2019
+2018
+;
+run;
+ 
+/* Step 1. Convert Numeric to Character */
+/******** for some reason SAS does not have a simple year format as a result must jump thru hoops to get a "year" informat *********/
+data work.my_ds1;
+    set work.my_ds;
+ 
+    my_date_char = put(my_date, 4.);
+   
+    numDate = input("0101" || my_date_char, mmddyy8.);
+
+	format numDate mmddyy10.;
+
+
+run;

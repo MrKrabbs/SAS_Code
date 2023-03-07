@@ -1,0 +1,7 @@
+	proc cas;
+	   simple.freq /                                
+	      inputs={"SICCodeTopLevelGroups"},                         
+	      table={caslib="KPMGDATA",name="LEVERAGING_SIGNALS"},                     
+	      casOut={caslib="casuser",name="vars_freqd_nonDates", replace=true}; 
+	run;
+	quit;

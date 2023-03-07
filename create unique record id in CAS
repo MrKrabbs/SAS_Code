@@ -1,0 +1,16 @@
+data mycas.cars3;
+set mycas.cars1;
+rowID = _n_;
+threadID = _threadid_;
+uniqueRowID = _n_ + (_threadid_ * 1E4);
+by make;
+run;
+
+
+libname casuser cas DATALIMIT=ALL;
+caslib _all_ assign;
+data casuser.test;
+put 'Hello from ' _hostname_
+'thread # ' _threadid_;
+x=1;
+run;

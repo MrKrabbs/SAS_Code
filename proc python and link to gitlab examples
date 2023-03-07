@@ -1,0 +1,16 @@
+
+##https://gitlab.sas.com/GEL/python-examples
+
+input_table='sashelp.class'
+output_table='work.class_transposed'
+
+dfin=SAS.sd2df(input_table)
+print("input shape is:",dfin.shape)
+dfout=dfin.transpose()
+
+dfout.columns=dfout.iloc[0]
+
+dfout=dfout[1:]
+
+print("output data shape is :", dfout.shape)
+SAS.df2sd(dfout,output_table)

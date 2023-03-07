@@ -1,0 +1,12 @@
+%let x=Value ;
+
+%put '&x';
+
+%put "&x";
+
+%put 'The value of x is "&x".' ;
+
+%put "The value of x is '&x'." ;
+
+
+%put "The value of x is ""&x""." ;

@@ -1,0 +1,23 @@
+%let outpath=/*specify output file location*/;
+ 
+/*   value in code below is seeing how we can save the results of indivdiual casl actions into one cas table */
+/* not simple.numRows and simple.distinct both have the same cas table */ 
+ 
+proc cas;
+* Specify the CAS table *;
+    casTbl={name="cars", caslib="casuser"};
+ 
+* Store the number of rows in the CAS table *;
+    simple.numRows result=n / table=casTbl;
+ 
+* Store the number of distinct values in each column *;
+    simple.distinct result=d / table=casTbl;
+ 
+* Calculate the percentage of distinct values in each column *;
+    pctDistinct=d.Distinct.compute({"PctDistinct","Percent Distinct",percent7.2}, nDistinct/n.numRows)
+                          [ , {"Column","NDistinct","PctDistinct"} ];
+ 
+* Save the result table as a CSV file *;
+    saveresult pctDistinct csv="&outpath/pctDistinctCars.csv";  /* If I don't have a hard drive to write out I can simply store it as a work dataset */
+	/*saveresult pctDistinct dataout=work.pctDistinct; */
+quit;

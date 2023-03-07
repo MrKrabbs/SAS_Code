@@ -1,0 +1,62 @@
+/* https://sasexamplecode.com/how-to-easily-convert-a-number-to-a-date-in-sas/ */
+
+
+/* Step 0. Sample Data */
+data work.my_ds;
+    input my_date;
+    datalines;
+20201231
+20200426
+20190817
+;
+run;
+ 
+/* Step 1. Convert Numeric to Character */
+data work.my_ds;
+    set work.my_ds;
+ 
+    my_date_char = put(my_date, 8.);
+run;
+
+proc contents data=work.my_ds varnum;
+run;
+
+data work.my_ds;
+    set work.my_ds;
+ 
+    my_date_char = put(my_date, 8.);
+    sas_date_value = input(my_date_char, yymmdd8.);
+run;
+ 
+proc print data=work.my_ds noobs;
+run;
+
+data work.my_ds;
+    set work.my_ds;
+ 
+    my_date_char = put(my_date, 8.);
+    sas_date_value = input(my_date_char, yymmdd8.);
+    sas_date_format = sas_date_value;
+ 
+    format sas_date_format yymmdd10.;
+run;
+ 
+proc print data=work.my_ds noobs;
+run;
+
+
+
+/***********    below simply shows how we could have done this all in one step */
+data work.my_ds;
+    input my_date;
+    sas_date = input(put(my_date, 8.), yymmdd8.);
+    format sas_date yymmdd10.;
+    datalines;
+20201231
+20200426
+20190817
+;
+run;
+ 
+proc print data=work.my_ds noobs;
+run;

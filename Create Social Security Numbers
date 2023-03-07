@@ -1,0 +1,33 @@
+%let NObs = 1000;
+data Unif(keep=Part:);
+call streaminit(123);
+array parts[11] $1   PART1-PART11;
+Length PushTogether $11;
+Max = 9;
+do i = 1 to &NObs;
+DO j = 1 to 11;
+   u = rand("Uniform");            /* decimal values in (0,1)    */
+   k = ceil( Max*u );              /* integer values in 1..Max   */
+   parts[j]=strip(put(k,8.));
+   
+end;
+output; 
+end;
+run;
+
+
+data social_security;
+set unif;
+
+length SocialSecurityNumber $11;
+array parts[11] $1   PART1-PART11;
+
+parts[4]='-';
+parts[7]='-';
+SocialSecurityNumber='';
+Do i=1 to 11;
+SocialSecurityNumber=cats(SocialSecurityNumber,parts[i]);
+End;
+
+keep SocialSecurityNumber;
+run;

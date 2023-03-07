@@ -1,0 +1,72 @@
+data casuser.Severity;
+set PUBLIC.INSURANCE_DEMO_CS;
+
+if Claim_Severity > 1;
+
+keep 
+
+State Claim_Severity Age Bluebook Rating_Category DrivingUnderInfluence 
+		Claim_Flag NumberOfPolicy Income Region Occupation Risk_Score Marital_Status 
+		TIF Car_Use Education Revoked Gender MotorVehicleRecordPoint Urbanicity 
+		Car_Age Travel_Time Car_Type New_Business Policy_Number;
+run;
+
+data casuser.SeverityB;
+set casuser.severity;
+by Policy_Number;
+
+keepflag='N';
+
+if first.Policy_Number then keepflag = 'Y';
+
+Length Claim_Number $20.;
+
+Claim_Number=cats('clm_',substr(Policy_Number,3));
+
+Severity_Target = log(Claim_Severity);
+
+drop NumberOfPolicy Risk_Score Claim_Flag Region State Urbanicity TIF New_Business Claim_Severity Claim_Flag;
+
+run;
+
+data work.TempSeverityB;
+Set casuser.SeverityB;
+where keepflag='Y';	
+RowNumber=_n_;
+
+keepRow='N'; 
+
+if RowNumber/4 = int(RowNumber/4) then keepRow='Y'; 
+
+if keepRow='Y'; 
+
+drop RowNumber keepflag keepRow;
+run;
+
+data casuser.TempSeverityB; Set work.TempSeverityB;run;
+
+
+proc partition data=casuser.TempSeverityB partind samppct=60 samppct2=10;
+/* 	where keepflag='Y';				 */
+	output out=casuser.SeverityC copyvars=(Age Bluebook Car_Age Car_Type Car_Use Claim_Number DrivingUnderInfluence Education Gender Income Marital_Status MotorVehicleRecordPoint Occupation Policy_Number Rating_Category Revoked Severity_Target Travel_Time);			
+run;
+
+proc casutil incaslib="PUBLIC" outcaslib="PUBLIC";
+	droptable casdata="SeverityC" quiet;
+run;quit;
+
+
+
+proc casutil;
+PROMOTE CASDATA="SeverityC" INCASLIB="casuser"
+CASOUT="SeverityC" OUTCASLIB="Public";
+run;quit;	
+
+/* Save table in CAS */
+proc casutil;
+	save incaslib="PUBLIC" outcaslib="PUBLIC" casdata="SeverityC" replace;
+run;QUIT;
+
+
+
+

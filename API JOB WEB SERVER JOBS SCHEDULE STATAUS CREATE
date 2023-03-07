@@ -1,0 +1,42 @@
+/* PULL DOWN THE MACROS */
+filename mc url
+  "https://raw.githubusercontent.com/sasjs/core/main/all.sas";
+%inc mc;
+
+/* CREATE A FILE NAME STATEMENT POINTING TO JOB YOU WOULD LIKE TO CREATE FROM A SAS JOB */
+filename sasCode filesrvc folderpath='/Public/MyJobs' name='TestJob.sas';run;
+
+/* RUN MACRO BELOW TO TAKE SAS PROGRAM AND CREATE A SAS JOB FROM PROGRAM */
+%mv_createjob(path=/Public/MyJobs,code=sasCode,name=JobAuto,replace=YES) 
+
+
+
+/* BELOW CAN CREATE MANY JOBS VIA A MACRO. LEVERAGE THE EXCEL FILE CALLED JOB NAMES. WILL UPLOAD THIS EXCEL FILE INTO GITHUB */
+Proc sql;
+select  TRIM(Program_name) into :Programs1- from work.JOB_NAMES;
+QUIT;
+
+%* Step 1 - compile macros ;
+filename mc url
+  "https://raw.githubusercontent.com/sasjs/core/main/all.sas";
+%inc mc;
+
+%MACRO CREATE_JOBS;
+
+%do i = 1 %to &sqlobs.;
+	%local pgmName;
+	%let pgmName=%scan(&&Programs&i.,1,.);
+	filename genLog filesrvc folderpath='/Public/Job Chaining/Build_Jobs' name='Generate_SAS_Log.sas'; /* output sas log to external file */
+	filename sasCode filesrvc folderpath='/Public/Job Chaining/SAS_Programs' name="&&Programs&i."; /* sas code to be converted to a job */
+	filename clsLog filesrvc folderpath='/Public/Job Chaining/Build_Jobs' name='Close_SAS_Log.sas';
+   %mv_createjob(path=/Public/Job Chaining,code=genLog sasCode clsLog,name=&pgmName.,replace=YES) 
+%end;
+
+%MEND CREATE_JOBS;
+
+%CREATE_JOBS ;
+
+/* THE FILENAME GENLOG WILL POINT TO SAS CODE THAT OUTPUTS THE LOG TO AN EXTERNAL LOCATION */
+/* THE FILENAME clsLog will close the output to the log and return output to the program */
+/* The filename sasCode is the code being turned into a SAS program */
+

@@ -1,0 +1,36 @@
+%let myTable=TEMP_ALL_SCORES;
+%let myCasLibrary=casuser;
+
+
+proc cas;
+	session casauto;
+
+	/* below will do two things, print out the formats before changing and creating a temp table r that holds info on the columns(variables) */
+	table.columninfo result=r / table={caslib="&myCasLibrary.", name="&myTable."};
+	run;
+
+	/* print to the results window column info, specifically formats if they exist */
+	print r;
+	run;
+
+	/* the object cols below is an array */
+	cols={};
+
+	do row over r.ColumnInfo;
+		cols=cols + {{name=row.Column, label=""}};
+	end;
+
+	/* below will print out our array called cols, IMPORTANT, the array will be printed to the log and NOT the results window */
+	/* this array will simply have the column name and format=missing\blank\empty */
+	print cols;
+	run;
+
+	/* below will alter our table by setting all formats to missing (empty) by leveraging the array called cols */
+	table.altertable / caslib="&myCasLibrary.", columns=cols, name="&myTable.";
+	table.columninfo result=t / table={caslib="&myCasLibrary.", name="&myTable."};
+	run;
+	print t;
+	run;
+
+
+quit;

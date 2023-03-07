@@ -1,0 +1,8 @@
+proc cas;                                            
+    dataPreprocess.catTrans /   
+copyAllVars=TRUE                        
+      table={caslib="PUBLIC",name="PUREPREMIUM"},                     
+	      casOut={caslib="PUBLIC",name="PP_ONEHOT", replace=true}; 
+    run;
+
+quit;  

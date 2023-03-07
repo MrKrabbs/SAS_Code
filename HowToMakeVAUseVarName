@@ -1,0 +1,5 @@
+/* by removing all labels you force VA to use variable names *?
+proc datasets library=WORK;
+     modify BASEBALL;
+           attrib _all_ label=' ';
+run; quit;

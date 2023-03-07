@@ -1,0 +1,50 @@
+from sklearn import ensemble
+
+#dm_inputdf = tbl.to_frame()
+#dm_class_input = ["Occupation","Marital_Status","Car_Use","Education","Gender","Urbanicity","Car_Type"] # fyi naming convention will make it easier to understand SAS Integration
+#dm_interval_input = ["Age","Bluebook","Income","Risk_Score","TIF","MotorVehicleRecordPoint","Car_Age","Travel_Time"]
+#dm_input = dm_class_input + dm_interval_input
+#dm_partitionvar = 'partind'
+#dm_partition_train_val = 1
+#dm_predictionvar = ["P_Claim_Severity"]
+
+#create list of only the variables we want to use for modeling, the target variable should NOT be in this list as its accounted for 
+#when you call the modeling statement (fit) unlike SAS, the input and target can be viewed as two separate objects
+
+# dm_input is a list of both cat and cont variables, the variables for cat\cont are treated as a list, the dm_partitionvar variable is a string, as a result
+# you need to do an insert into the list of variables instead of simply using  + dm_partitionvar to join it to the list of cat\cont vars
+dm_input.insert(0, dm_partitionvar)
+
+#the list dm_input now contains all nominal, cont and partition variable
+#grab our data and only keep the variables in our dm_input list
+my_all_Recs_inputs_and_partition = dm_inputdf.loc[:, dm_input] #loc functions is grabbing all rows(:) and selecting only columns in the list dm_input
+
+#now create encoded variables for our nominal variables
+my_all_Recs_enc = pd.get_dummies(my_all_Recs_inputs_and_partition, columns=dm_class_input, drop_first=True)
+
+#now filter using our partition variable to create our training dataset
+my_traindf_enc = my_all_Recs_enc[my_all_Recs_enc[dm_partitionvar] == dm_partition_train_val]
+
+#now drop our partition variable
+my_traindf_enc = my_traindf_enc.drop(dm_partitionvar, 1) #1 signifies we are dropping a columns
+
+#    we now have our training dataset called my_traindf_enc   
+
+# Create y(labels)
+#dm_dec_target = 'Claim_Severity'   #str   drop this if its not requreid
+#below will take our training data and create a panda series with just the target variable
+y = dm_traindf[dm_dec_target]   #panda series
+
+params = {'n_estimators': 500, 'max_depth': 4, 'min_samples_split': 2,'learning_rate': 0.01, 'loss': 'ls'}
+dm_model = ensemble.GradientBoostingRegressor(**params)
+dm_model.fit(my_traindf_enc, y)
+
+
+# Save VariableImportance to CSV
+varimp = pd.DataFrame(list(zip(my_traindf_enc, dm_model.feature_importances_)), columns=['Variable Name', 'Importance'])
+varimp.to_csv(dm_nodedir + '/rpt_var_imp.csv', index=False)
+
+# Score full data
+my_all_Recs_enc = my_all_Recs_enc.drop(dm_partitionvar, 1)
+dm_scoreddf = pd.DataFrame(my_all_Recs_enc)
+dm_scoreddf['P_Claim_Severity'] = dm_model.predict(my_all_Recs_enc)

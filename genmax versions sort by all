@@ -1,0 +1,76 @@
+/* Below is a url that does a good job of explaining genmax versions */
+/* https://www.9to5sas.com/sas-generation-datasets/#:~:text=SAS%20generation%20datasets%20are%20historical%20copies%20of%20a,table%20of%20contents%20What%20are%20SAS%20Generation%20Datasets%3F */
+/* THIS CAPABILITY ONLY APPLIES IN VERY SPECIFIC CASES. CASES WHERE DATA IS NOT LARGE AND THE UPDATE IS NOT CONSTANT. IF THAT CRITERIA IS MET THE GENMAX CAPABILITY CAN BE VERY USEFUL*/
+
+/* BELOW SAYS CREATE A DATASET AND ALLOW 999 VERSIONS OF THE DATASET. Note 999 is the max, but if you are saving daily you could embed the data into the table name then you*/
+/* limited to 999 different versions daily. Also please not that SAS datasets when compressed drop down to about 5% of their original size when compresses. So.....if the purpose of */
+/* having versions is for "safety" or the ability to go back in time after a mistake, this could work */
+Data work.test(genmax=999);
+set sashelp.cars;
+run;
+
+
+/* creating a new dataset by copying on genmax table*/
+data work.make_change;
+set work.test;
+
+if cylinders > 6 then cylinders = 99;
+run;
+
+
+/* over writing our genmax table with the table above */
+data work.test;
+set work.make_change;
+run;
+
+
+/* when you run this code you should get back two records because now you have two versions*/
+/* note that the size of file is the same for both records, so yes...you are duplicating the table each and every time you create a new version. That is why the stipulation probably*/
+/* not a good fit for large data and constant updating */
+PROC SQL ;
+	SELECT * FROM DICTIONARY.TABLES 
+		WHERE (UPCASE(LIBNAME)='WORK' AND (MEMNAME="TEST" OR MEMNAME LIKE "TEST#%"));
+QUIT;
+
+proc print data=work.test; /* anytime you interact wiht the genmax table it will only apply your statements to the most recent version if you don't use keyword gennum */
+
+
+/* run both lines of code below at same time to see that you can always access prior versions */
+proc print data=work.test;where strip(model)='A6 4.2 Quattro 4dr';run;
+proc print data=work.test(gennum=1);where strip(model)='A6 4.2 Quattro 4dr';run; /* this version will have identical data to sashelp.cars our first\original table*/
+
+
+/* code below will combine all copies of dataset then dedup the table, leaving only the original data and updates */
+/* maybe this code would be ran once a night to make sure our tables did not get too large. This is done by removing duplicate data records*/
+
+/**************************   start of combining all versions and stripping out duplicate records. This is done to reduce our table size */
+PROC SQL ;
+	SELECT MAX(GEN) INTO :GEN_CRDT FROM DICTIONARY.TABLES 
+		WHERE (UPCASE(LIBNAME)='WORK' AND
+(MEMNAME="TEST" OR MEMNAME LIKE "TEST#%"));
+QUIT;
+
+
+%MACRO COMBGENS;
+	%DO I=0 %TO &GEN_CRDT;
+
+		PROC APPEND BASE=WORK.ALL_VERSIONS
+	DATA=WORK.TEST(GENNUM=-&I);
+		RUN;
+
+	%END;
+%MEND COMBGENS;
+
+%COMBGENS;
+
+PROC SORT DATA=WORK.ALL_VERSIONS OUT=DUP_RECORDS_REMOVED NODUP; /* you will notice that our table called work.DUP_RECORDS_REMOVED now only has 520 in lieu of 856 */
+BY _ALL_;
+RUN;
+
+/* run the code below to delete all versions including you base table. you would only run this code when you want to start over */
+
+proc datasets library=work;
+delete test(gennum=all);
+run;
+QUIT;
+

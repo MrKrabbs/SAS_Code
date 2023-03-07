@@ -1,0 +1,160 @@
+https://blogs.sas.com/content/sgf/2021/03/15/how-to-conditionally-execute-sas-global-statements/
+
+
+Above is the url to this excellent blog about being able to use call execute combined with Data null to have better control over your timing of execution
+
+CALL EXECUTE made easy for SAS data-driven programming 71
+By Leonid Batkhan on SAS Users August 2, 2017Topics | Learn SAS Programming Tips
+
+In my prior posts (Data-driven SAS macro loops, Modifying variable attributes in all datasets of a SAS library, Automating the loading of multiple database tables into SAS tables), I presented various data-driven applications using SAS macro loops.
+
+However, macro loops are not the only tools available in SAS for developing data-driven programs.
+
+CALL EXECUTE is one of them. The CALL EXECUTE routine accepts a single argument that is a character string or character expression. The character expression is usually a concatenation of strings containing SAS code elements to be executed after they have been resolved. Components of the argument expression can be character constants, data step variables, macro variable reference, as well as macro references. CALL EXECUTE dynamically builds SAS code during DATA step iterations; that code executes after the DATA step’s completion outside its boundary. This makes a DATA step iterating through a driver table an effective SAS code generator similar to that of SAS macro loops.
+
+However, the rather peculiar rules of the CALL EXECUTE argument resolution may make its usage somewhat confusing. Let’s straighten things out.
+
+Argument string has no macro or macro variable reference
+If an argument string to the CALL EXECUTE contains SAS code without any macro or macro variable references, that code is simply pushed out (of the current DATA step) and appended to a queue after the current DATA step. As the DATA step iterates, the code is appended to the queue as many times as there are iterations of the DATA step. After the DATA step completes, the code in the queue gets executed in the order of its creation (First In First Out).
+
+The beauty of this process is that the argument string can be a concatenation of character constants (in single or double quotes) and SAS variables which get substituted with their values by CALL EXECUTE for each DATA step iteration. This will produce data-driven, dynamically generated SAS code just like an iterative SAS macro loop.
+
+Let’s consider the following example. Say we need to load multiple Oracle tables into SAS tables.
+
+Step 1. Creating a driver table
+
+In order to make our process data-driven, let’s first create a driver table containing a list of the table names that needed to be extracted and loaded:
+
+/* create a list of tables to extract & load */
+libname parmdl '/sas/data/parmdata';
+data parmdl.tablelist;
+        length tname $8;
+        input tname;
+        datalines;
+ADDRESS
+ACCOUNT
+BENEFIT
+FINANCE
+HOUSING
+;
+This program runs just once to create the driver table parmdl.tablelist.
+
+Step 2. Loading multiple tables
+
+Then, you can use the following data-driven program that runs each time you need to reload Oracle tables into SAS:
+
+/* source ORACLE library */
+libname oralib oracle path="xxx" schema="yyy" user="uuu"
+ 	PASSWORD="{SAS002}ABCDEFG12345678RTUR" access=readonly;
+ 
+/* target SAS library */
+libname sasdl '/sas/data/appdata';
+ 
+/* driver table SAS library */
+libname parmdl '/sas/data/parmdata';
+ 
+data _null_;
+   set parmdl.tablelist;
+   call execute(cats(
+      'data sasdl.',tname,';',
+         'set oralib.',tname,';',
+      'run;'));
+run;
+In order to concatenate the components of the CALL EXECUTE argument I used the cats() SAS function which returns a concatenated character string removing leading and trailing blanks.
+
+When this program runs, the SAS log indicates that after the data _null_ step the following statements are added and executed:
+
+NOTE: CALL EXECUTE generated line.
+1   + data sasdl.ADDRESS;set oralib.ADDRESS;run;
+2   + data sasdl.ACCOUNT;set oralib.ACCOUNT;run;
+3   + data sasdl.BENEFIT;set oralib.BENEFIT;run;
+4   + data sasdl.FINANCE;set oralib.FINANCE;run;
+5   + data sasdl.HOUSING;set oralib.HOUSING;run;
+In this example we use data _null_ step to loop through the list of tables (parmdl.tablelist) and for each value of the tname column a new data step gets generated and executed after the data _null_ step. The following diagram illustrates the process:
+
+Diagram explaining CALL EXECUTE for SAS data-driven programming
+
+Argument string has macro variable reference in double quotes
+If an argument to the CALL EXECUTE has macro variable references in double quotes, they will be resolved by the SAS macro pre-processor during the DATA step compilation. Nothing unusual. For example, the following code will execute exactly as the above, and macro variable references &olib and &slib will be resolved to oralib and sasdl before CALL EXECUTE takes any actions:
+
+%let olib = oralib;
+%let slib = sasdl;
+ 
+data _null_;
+   set parmdl.tablelist;
+   call execute (
+      "data &slib.."!!strip(tname)!!';'!!
+         "set &olib.."!!strip(tname)!!';'!!
+      'run;'
+   );
+run;
+Argument string has macro or macro variable reference in single quotes
+Here comes the interesting part. If the argument to CALL EXECUTE has macro or macro variable references in single quotes, they still will be resolved before the code is pushed out of the DATA step, but not by the SAS macro pre-processor during the DATA step compilation as it was in the case of double quotation marks. Macro or macro variable references in single quotes will be resolved by CALL EXECUTE during the DATA step execution. For example, the following code will execute exactly as the above, but macro variable references &olib and &slib will be resolved by CALL EXECUTE:
+
+%let olib = oralib;
+%let slib = sasdl;
+ 
+data _null_;
+   set parmdl.tablelist;
+   call execute('data &slib..'!!strip(tname)!!';'!!
+                'set &olib..'!!strip(tname)!!';'!!
+                'run;'
+               );
+run;
+Timing considerations
+CAUTION: If your macro contains some non-macro language constructs for assigning macro variables during run time, such as a CALL SYMPUT or SYMPUTX statement (in a DATA step) or an INTO clause (in PROC SQL), resolving those macro variable references by CALL EXECUTE will happen too soon, before your macro-generated code gets pushed out and executed. This will result in unresolved macro variables. Let’s run the following code that should extract Oracle tables into SAS tables as above, but also re-arrange column positions to be in alphabetical order:
+
+%macro onetable (tblname);
+   proc contents data=oralib.&tblname out=one(keep=name) noprint;
+   run;
+ 
+   proc sql noprint;
+      select name into :varlist separated by ' ' from one;
+   quit;
+   %put &=varlist;
+ 
+   data sasdl.&tblname;
+      retain &varlist;
+      set oralib.&tblname end=last nobs=n;
+      if last then call symput('n',strip(put(n,best.)));
+   run;
+   %put Table &tblname has &n observations.;
+%mend onetable;
+ 
+data _null_;
+   set parmdl.tablelist;
+   call execute('%onetable('!!strip(tname)!!');');
+run;
+Predictably, the SAS log will show unresolved macro variable references, such as:
+
+WARNING: Apparent symbolic reference VARLIST not resolved.
+WARNING: Apparent symbolic reference N not resolved.
+Table ADDRESS has &n observations.
+SOLUTION: To avoid the timing issue when a macro reference gets resolved by CALL EXECUTE too soon, before macro variables have been assigned during macro-generated step execution, we can strip CALL EXECUTE of the macro resolution privilege. In order to do that, we can mask & and % characters using the %nrstr macro function, thus making CALL EXECUTE “macro-blind,” so it will push the macro code out without resolving it. In this case, macro resolution will happen after the DATA step where CALL EXECUTE resides. If an argument to CALL EXECUTE has a macro invocation, then including it in the %nrstr macro function is the way to go. The following code will run just fine:
+
+data _null_;
+   set parmdl.tablelist;
+   call execute('%nrstr(%onetable('!!strip(tname)!!'));');
+run;
+When this DATA step runs, the SAS log indicates that the following statements are added and executed:
+
+NOTE: CALL EXECUTE generated line.
+1   + %onetable(ADDRESS);
+2   + %onetable(ACCOUNT);
+3   + %onetable(BENEFIT);
+4   + %onetable(FINANCE);
+5   + %onetable(HOUSING);
+CALL EXECUTE argument is a SAS variable
+The argument to CALL EXECUTE does not necessarily have to contain or be a character constant. It can be a SAS variable, a character variable to be precise. In this case, the behavior of CALL EXECUTE is the same as when the argument is a string in single quotes. It means that if a macro reference is part of the argument value it needs to be masked using the %nrstr() macro function in order to avoid the timing issue mentioned above.
+
+In this case, the argument to the CALL EXECUTE may look like this:
+
+arg = '%nrstr(%mymacro(parm1=VAL1,parm2=VAL2))';
+call execute(arg);
+Making CALL EXECUTE totally data-driven
+In the examples above we used the tablelist driver table to retrieve values for a single macro parameter for each data step iteration. However, we can use a driver table not only to dynamically assign values to one or more macro parameters, but also to control which macro to execute in each data step iteration. The following diagram illustrates the process of totally data-driven SAS program:
+
+Diagram explaining using CALL EXECUTE for SAS data-driven programming
+
+Conclusion
+CALL EXECUTE is a powerful tool for developing dynamic data-driven SAS applications. Hopefully, this blog post demonstrates its benefits and clearly explains how to avoid its pitfalls and use it efficiently to your advantage. I welcome your comments, and would love to hear your experiences with CALL EXECUTE.

@@ -1,0 +1,25 @@
+
+/* below will show you the size of your Viya environment but also the health of the environment */
+
+cas casauto sessopts=(metrics=true);
+
+
+/* below will print to the log */
+proc cas;
+   session casauto;
+   session.sessionStatus result=r;
+   print "Session status:";             
+   print "State:         " r["state"];
+   print "Connections:   " r["number of Connections"];
+   print "Timeout:       " r["Timeout"] "minutes";
+   print "Action Status: " r["ActionStatus"];
+   print "Authenticated: " r["Authenticated"];
+   print "Locale:        " r["locale"];
+run;
+
+/* below will print to the results window and the log */
+proc cas;
+   session casauto;         /*1*/
+   builtins.serverStatus;   /*2*/
+run;
+quit;

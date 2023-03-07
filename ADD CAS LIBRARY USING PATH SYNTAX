@@ -1,0 +1,17 @@
+cas;
+
+caslib home datasource=(srctype="path") path="/home/sasdemo/data/cas" global;
+libname home cas caslib=home;
+
+caslib shrshop datasource=(srctype="path") path="/shared/workshop/cas" subdirs global;
+libname shrshop cas caslib=shrshop;
+
+
+
+
+proc cas;
+table.dropCaslib / casLib="shrshop";
+run;
+proc cas;
+table.dropCaslib / casLib="home";
+run;

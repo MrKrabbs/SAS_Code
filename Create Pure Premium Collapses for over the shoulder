@@ -1,0 +1,82 @@
+proc sql;
+%if %sysfunc(exist(CASUSER.Collapse_PP)) %then %do;
+    drop table CASUSER.Collapse_PP;
+%end;
+%if %sysfunc(exist(CASUSER.Collapse_PP,VIEW)) %then %do;
+    drop view CASUSER.Collapse_PP;
+%end;
+quit;
+;
+PROC FEDSQL SESSREF=casauto;
+	CREATE TABLE CASUSER."Collapse_PP" AS
+		SELECT
+			(AVG(t1."Age")) AS "AVG_Age",
+			(t1."Rating_Category") AS "Rating_Category",
+			(t1."DrivingUnderInfluence") AS "DrivingUnderInfluence",
+			(AVG(t1."Income")) AS "AVG_Income",
+			(t1."Occupation") AS "Occupation",
+			(t1."Marital_Status") AS "Marital_Status",
+/* 			(t1."Education") AS "Education", */
+			(t1."Revoked") AS "Revoked",
+			(t1."Gender") AS "Gender",
+			(AVG(t1."MotorVehicleRecordPoint")) AS "AVG_MotorVehicleRecordPoint",
+			(AVG(t1."Car_Age")) AS "AVG_Car_Age",
+			(AVG(t1."Travel_Time")) AS "AVG_Travel_Time",
+			(t1."Car_Type") AS "Car_Type",
+			(t1."CarUse") AS "CarUse",
+			(AVG(t1."Total_Loss_Dollars")) AS "AVG_Total_Loss_Dollars",
+			(AVG(t1."Bluebook")) AS "AVG_Bluebook",
+			(SUM(t1."Total_Loss_Dollars")) AS "SUM_Total_Loss_Dollars",
+			(COUNT(DISTINCT(t1."uniqueRecordID"))) AS "COUNT Distinct_uniqueRecordID"
+		FROM
+			PUBLIC."PUREPREMIUM" t1
+		GROUP BY
+			t1."Rating_Category",
+			t1."Occupation",
+			t1."Marital_Status",
+/* 			t1."Education", */
+			t1."Revoked",
+			t1."Gender",
+			t1."Car_Type",
+			t1."CarUse",
+			t1."DrivingUnderInfluence"
+	;
+QUIT;
+RUN;
+
+PROC CASUTIL SESSREF=casauto;
+ALTERTABLE CASDATA="Collapse_PP" INCASLIB=CASUSER
+COLUMNS={
+{
+NAME="Rating_Category",
+FORMAT="$1."},
+{
+NAME="Occupation",
+FORMAT="$12."},
+{
+NAME="Marital_Status",
+FORMAT="$1."},
+{
+NAME="Gender",
+FORMAT="$1."},
+{
+NAME="Car_Type",
+FORMAT="$11."}};
+QUIT;
+RUN;
+
+proc casutil incaslib="PUBLIC" outcaslib="PUBLIC";
+	droptable casdata="PurePremium_Collapsed" quiet;
+run;quit;
+
+DATA PUBLIC.PurePremium_Collapsed(promote=yes);
+set CASUSER.Collapse_PP;
+
+run;
+
+
+
+/* Save table in CAS */
+proc casutil;
+	save incaslib="PUBLIC" outcaslib="PUBLIC" casdata="PurePremium_Collapsed" replace;
+run;QUIT;

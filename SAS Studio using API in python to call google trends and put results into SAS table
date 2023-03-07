@@ -1,0 +1,58 @@
+/* SAS code provided in template section of Custom Step - BEGIN */
+%let geoRegion=US;
+
+/* Macro variable(s) for UI control with ID of outputtable */
+%let outputtable=WORK.results;
+%let outputtable_label=;
+%let outputtable_lib=WORK;
+%let outputtable_name=results;
+%let outputtable_name_base=results;
+%let outputtable_type=;
+%let daysBack=10;
+
+proc python;
+submit;
+import urllib3
+import json
+import html
+from datetime import date
+from datetime import timedelta
+import pandas as pd
+
+http = urllib3.PoolManager()
+today = date.today()
+
+# Get input from the UI
+geoRegion = SAS.symget('geoRegion')
+daysBack = int(SAS.symget('daysBack'))
+
+# Define result data frame
+resultsDf = pd.DataFrame(columns=['dateString', 'isoCode', 'topTrend', 'trafficAmount', 'shareURL', 'articleURL', 'imageURL'])
+
+if daysBack > 30:
+    daysBack = 30
+    print('Can not go back more than 30 days')
+
+for i in range(daysBack):
+    dateToGet = today - timedelta(days = i)
+    dateString = dateToGet.strftime('%Y%m%d')
+    urlForTrend =f'https://trends.google.com/trends/api/dailytrends?hl=de-DE&tz=-60&ed={dateString}&geo={geoRegion}'
+    
+    # Get data
+    response = http.request('GET', urlForTrend, decode_content=True)
+    strvalue = json.loads(response.data[6:].decode('utf-8'))
+    
+    # Extracting data from response
+    topTrend = strvalue['default']['trendingSearchesDays'][0]['trendingSearches'][0]['title']['query']
+    traffic = strvalue['default']['trendingSearchesDays'][0]['trendingSearches'][0]['formattedTraffic']
+    shareURL = strvalue['default']['trendingSearchesDays'][0]['trendingSearches'][0]['shareUrl']
+    articleURL = strvalue['default']['trendingSearchesDays'][0]['trendingSearches'][0]['image']['newsUrl']
+    imageURL = strvalue['default']['trendingSearchesDays'][0]['trendingSearches'][0]['image']['imageUrl']
+    resultsDf = resultsDf.append({'dateString': dateString, 'isoCode': geoRegion, 'topTrend': topTrend, 'trafficAmount': traffic, 'shareURL': shareURL, 'articleURL': articleURL, 'imageURL': imageURL}, ignore_index=True)
+
+SAS.df2sd(resultsDf, SAS.symget('outputtable'))
+endsubmit;
+run; quit;
+
+proc python terminate;
+run; quit;/* SAS code provided in template section of Custom Step - END */

@@ -1,0 +1,3 @@
+proc sql;
+select distinct _varname_ , substr(tranwrd(tranwrd(varseg,'-','_'),'.','_'),1,32),varseglbl, VAR_VALUE into: old_var_name1-, : new_var_name1- ,: new_label1-, : var_value1- from work.my_levels2;
+quit;

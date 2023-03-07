@@ -1,0 +1,26 @@
+
+/* you will find the name of the ast in the Model library using manage data. Make sure it's loaded into memory */
+proc astore;
+
+	download rstore=MODELS._7XOCR8GBBNLS2R9PJLZ59OK5G_ast
+
+	store='/tmp/Bailey_astore.sashdat';
+
+run;
+
+proc astore;
+  upload rstore=casuser.myScoreTest
+         store='/tmp/Bailey_astore.sashdat';
+quit;
+
+data casuser.myCars;
+set public.cars;
+drop msrp;
+run;
+
+
+proc astore;
+   score data=casuser.myCars copyvars=(_all_)
+         rstore=casuser.myScoreTest
+         out=casuser.myCars2;
+quit;

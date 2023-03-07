@@ -1,0 +1,30 @@
+/* Below will drop records where modified=Y */
+PROC CAS;
+	session casauto;
+table.deleteRows / 
+ table={caslib="KPMG", name="SUM4_MODIFIED",where="modified='Y'"} 
+;
+run;
+quit;
+
+/* below will drop the two columns Var22 and Var23 */
+proc cas;
+  session casauto;
+table.alterTable /
+caslib="KPMG",
+drop={"Var22","Var23"},
+name="POLICY_MOCK_DATA"
+;RUN;
+QUIT;
+
+/* BELOW WILL RENAME OUR POLICY YEAR and Number of Claim Variables to remove the space */
+proc cas;
+  session casauto;
+table.alterTable /
+caslib="KPMG"
+columns={{name="Policy Year",RENAME="Policy_Year"},
+ {name="Number of Claims",RENAME="Number_Of_Claims"}
+}
+name="POLICY_MOCK_DATA"
+;RUN;
+QUIT;

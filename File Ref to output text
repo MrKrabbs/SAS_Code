@@ -1,0 +1,44 @@
+filename TEXT97 filesrvc folderpath='/Users/student/My Folder/Generate Scoring Code From Selected Factors' filename='Model_Score_From_Factor_Selected.sas';
+filename tempfile temp; 
+
+data _null_;
+file TEXT97;
+set work.MY_LEVELS3 (keep=HTML_TEXT) end=endXML;
+if _n_=1 then do;
+put '<!DOCTYPE html>';
+put '<html lang="en">';
+put '<head>';
+put '<title>TestMyHTML</title>';
+put '<link rel="stylesheet" href="/SASJobExecution/theme">';
+put '</head>';
+put '<body role="main" class="jobexec_body">';
+put '<form class="jobexec_form" action="/SASJobExecution/" >';
+put '<input type="hidden" name="_program" value="$PROGRAM$"/>';
+put '<input type="hidden" name="_action"  value="execute"/>';
+put 
+	'<div class="jobexec_sample_header">SAS<sup>&#174;</sup> Job Execution</div>';
+put '<hr/>';
+put '<br/>';
+end;
+put HTML_TEXT;
+if endXML=1 then do;
+put '<hr/>';
+put '<br/>';
+put '<label for="IncurredLoss"> IncurredLoss:</label>';
+put '<input type="text" name="IncurredLoss" id="IncurredLoss" value="Not Used" required class="jobexec_sample_input_text"/>';
+put '<hr/>';
+put '<br/>';
+put 
+	'<input type="submit" value="Run code" class="jobexec_sample_input_submit"/>';
+put '<input type="checkbox" name="_debug" id="_debug" value="log" class="jobexec_sample_input_checkbox"/><label for="_debug">Show SAS Log</label>';
+put '</form>';
+put '</body>';
+put '</html>';
+end;
+RUN;
+%let x=%sysfunc(fcopy(tempfile, TEXT97));
+%if &x %then %do;
+%put &x - %sysfunc(sysmsg());
+%end;
+filename tempfile clear;
+filename outcode CLEAR;

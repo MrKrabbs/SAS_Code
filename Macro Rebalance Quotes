@@ -1,0 +1,17 @@
+  
+  Below is the url for the sas documentation
+  https://support.sas.com/kb/31/699.html 
+  
+  
+  If you have unbalanced quotes in a SAS session, it will affect the rest of the code you submit in your current SAS session. Therefore, you need to balance the quotation marks.
+
+You might see the following error in the SAS log window if you run into this problem:
+
+WARNING 32-169: The quoted string currently being processed has become more than 262 characters long. You may have unbalanced quotation marks.
+To correct this problem perform the following:
+
+   Submit this string from the Program Editor:
+  
+  
+  *';*"; 
+   run;

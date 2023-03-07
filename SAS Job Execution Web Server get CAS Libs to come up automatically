@@ -1,0 +1,2 @@
+The SAS Job Execution Server has an autoexec file similar to SAS Studio. In the Server autoexec this is where you can place code to get all the cas libs to 
+come up automatically

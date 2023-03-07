@@ -1,0 +1,22 @@
+proc cas;
+    source createColumns;
+        Total_Price = Price * Quantity;
+        Product_fix = upcase(Product);
+ 
+        length Return_fix varchar(3);
+        if Return = "" then Return_fix = "No"; 
+           else Return_fix = "Yes";
+    endsource;
+ 
+    productsTbl = {name = 'products', 
+                   caslib = 'casuser',
+                   computedVars = {
+                            {name = 'Total_Price', format = 'dollar16.2'},
+                            {name = 'Product_fix'},
+                            {name = 'Return_fix'}
+                   },
+                   computedVarsProgram = createColumns
+    }; 
+ 
+    table.fetch / table = productsTbl;
+quit;

@@ -1,0 +1,55 @@
+/*The macro below lists all of the files that contain a particular extension within a directory and all sub-directories. */
+/*This macro can be modified to do more than just list the files. The %PUT can be replaced with other code to be used on */
+/*each file. For example, if you want to %INCLUDE each file contained within these directories, you can do this easily by*/
+/*replacing the %PUT statement with the following:*/
+/*   %include "&dir\&name" /source2;*/
+
+%macro drive(dir,ext);                                                                                                                  
+  %local filrf rc did memcnt name i;                                                                                                    
+                                                                                                                                        
+  /* Assigns a fileref to the directory and opens the directory */                                                           
+  %let rc=%sysfunc(filename(filrf,&dir));                                                                                               
+  %let did=%sysfunc(dopen(&filrf));                                                                                                     
+                                                                                                                                        
+  /* Make sure directory can be open */                                                                                                 
+  %if &did eq 0 %then %do;                                                                                                              
+   %put Directory &dir cannot be open or does not exist;                                                                                
+   %return;                                                                                                                             
+  %end;                                                                                                                                 
+                                                                                                                                        
+   /* Loops through entire directory */                                                                                                 
+   %do i = 1 %to %sysfunc(dnum(&did));                                                                                                  
+                                                                                                                                        
+     /* Retrieve name of each file */                                                                                                   
+     %let name=%qsysfunc(dread(&did,&i));                                                                                               
+                                                                                                                                        
+     /* Checks to see if the extension matches the parameter value */                                                                   
+     /* If condition is true print the full name to the log        */                                                                   
+      %if %qupcase(%qscan(&name,-1,.)) = %upcase(&ext) %then %do;                                                                       
+        %put &dir\&name;                                                                                                                
+      %end;                                                                                                                             
+     /* If directory name call macro again */                                                                                           
+      %else %if %qscan(&name,2,.) = %then %do;                                                                                          
+        %drive(&dir\%unquote(&name),&ext)                                                                                               
+      %end;                                                                                                                             
+                                                                                                                                        
+   %end;                                                                                                                                
+                                                                                                                                        
+  /* Closes the directory and clear the fileref */                                                                                      
+  %let rc=%sysfunc(dclose(&did));                                                                                                       
+  %let rc=%sysfunc(filename(filrf));                                                                                                    
+                                                                                                                                        
+%mend drive;                                                                                                                            
+
+/* To find SAS directories that have macro code stored you can run the code below */
+%put %sysfunc(getoption(sasautos));
+%put %sysfunc(pathname(sasautos));
+
+/* To run the macro drive shown above do the following */
+/* First parameter is the directory of where your files are stored. */                                                                  
+/* Second parameter is the extension you are looking for.           */                                                                  
+%drive(C:\Program Files\SASHome\SASFoundation\9.4\core\sasmacro,sas)   
+
+
+/* Once you see a macro (sas program ending in .sas) you can do the following to "see" the macro code */
+%include "C:\Program Files\SASHome\SASFoundation\9.4\core\sasmacro\lowcase.sas" /source2 ;

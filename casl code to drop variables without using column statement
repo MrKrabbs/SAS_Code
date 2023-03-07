@@ -1,0 +1,41 @@
+
+proc sql;
+	select cats(Transformation, '_', Variable, '=', tranwrd(Func, '-', '_'), '_', 
+		Variable) into:RenameThese separated by ' ' from preSelectTransVars_B where 
+		UseThis='Y';
+	select cat(Trim(Transformation), '_', trim(Variable), '=', '"', 
+		Trim(tranwrd(Func, '-', '_')), ' ', trim(Variable), '"') into:LabelThese 
+		separated by ' ' from preSelectTransVars_B where UseThis='Y';
+	select quote(cats(tranwrd(Func, '-', '_'), '_',Variable)) into:TranfrmVars separated by ',' from preSelectTransVars_B where UseThis='Y';
+	select quote(trim(Variable)) into:OrigIntervalVars separated by ',' from preSelectTransVars_B where UseThis='Y';
+/* 	select cats(tranwrd(Func, '-', '_'), '_',Variable) into:KeepTranfrmVars separated by ' ' from preSelectTransVars_B where UseThis='Y'; */
+/* 	select trim(Variable) into:KeepOrigIntervalVars separated by ' ' from preSelectTransVars_B where UseThis='Y'; */
+
+quit;
+
+
+DATA CASUSER.TRANS_INTERVAL_VARS;
+	SET CASUSER.CONT_TRANSFORMS(drop=&DropThese.);
+	LABEL
+&LabelThese.;
+	RENAME
+&RenameThese.;
+run;
+
+OPTIONS MERROR SYMBOLGEN MLOGIC MPRINT SOURCE SOURCE2;
+
+%let OrigAndTransfrmVars= &TranfrmVars , &OrigIntervalVars;
+
+
+80   proc cas;
+81     session casauto;
+82   table.alterTable /
+83   caslib="CASUSER"
+8486   name="TRANS_INTERVAL_VARS", /* table name notice the comma after table name*/
+87   keep={"uniqueRecordID",&OrigAndTransfrmVars.}
+SYMBOLGEN:  Macro variable ORIGANDTRANSFRMVARS resolves to 
+            "Sqrt_Age","Log_Bluebook","Sqrt_Car_Age","Sqrt_Income","BoxCox_Travel_Time" , 
+            "Age","Bluebook","Car_Age","Income","Travel_Time"
+88   ;RUN;
+NOTE: Active Session now casauto.
+89   QUIT;

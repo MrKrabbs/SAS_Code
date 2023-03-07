@@ -1,0 +1,20 @@
+CAS;
+CASLIB _ALL_ ASSIGN;
+DATA CASUSER.MYCARS;
+SET SASHELP.CARS;
+RUN;
+
+PROC PRINT DATA=CASUSER.MYCARS;
+WHERE make='Buick' and STRIP(model)='Regal GS 4dr';
+RUN;
+
+proc cas;
+  session casauto;
+table.update /
+ table={caslib="CASUSER", name="MYCARS", where="make='Buick' and STRIP(model)='Regal GS 4dr'"},
+ set = {
+       {var="type", value="'Sport Sedan'"},                      
+       {var="msrp", value="'31,000'"}
+     };
+;RUN;
+QUIT;

@@ -1,0 +1,42 @@
+/***************** Below was ran in Viya 3.5         **************************************;
+/* below will add a new cas lib */
+proc cas;
+  session casauto;
+
+  table.addCaslib / 
+    caslib="mkbdata",
+    datasource={srctype="path"},                                 
+    path="/opt/sasinside/DemoData";
+run;
+quit;
+
+/******   Stop: adding the caslib above does not mean you can "see" it in SAS Studio. You must take the step of assigning a library reference to the caslib */
+/* after running the code below you should now be able to "see" the library premium (caslib=mkbdata) in SAS Studio */
+libname premium cas caslib=mkbdata datalimit=ALL;
+
+data premium.testcars;
+set sashelp.cars;
+run;
+
+
+/*   To Bruno's point you cannot have duplicate caslibs pointing to the same destination */
+/* if you ran the code to create the caslib mkbdata above and tried running the code below */
+/* you would get an error as both caslibs point to the same folder*/
+/* might seem obvious but no so much if you are use to 9.4 where you can do that (2 libraries pointing to same folder) and only get a warning */
+proc cas;
+  session casauto;
+
+  table.addCaslib / 
+    caslib="mkbdata2", /* different name but same folder location as above */
+    datasource={srctype="path"},                                 
+    path="/opt/sasinside/DemoData";
+run;
+quit;
+
+
+/*  To Brunos second point. Above code only generates a session caslib which is no good if you want to promote a table */
+/* If you try to promote you will get this message ERROR: The caslib 'mkbdata' is a session caslib. You cannot promote tables to global scope in session caslibs.*/
+
+/* Why would you add a caslib or what is the benefit of adding a caslib? The answer below came from Gordon Keener in Yammer */
+/* You need to load/save tables from/to a directory (note we restrict the directories you can point to via an admin-controlled "allowlist"), */
+/* database, or other thing [I think there's a Twitter datasource, if your CAS doesn't have enough crap in it already] */

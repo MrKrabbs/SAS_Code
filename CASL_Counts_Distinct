@@ -1,0 +1,42 @@
+/* below works to count the number of distinct vehicles on the policy */					
+proc cas;					
+   session casauto;					
+   simple.distinct /                                					
+      inputs={"DummyVin"},                          					
+      table={caslib="casuser",name="policy", groupBy={"POLNO"}},                     					
+      casOut={caslib="casuser",name="car_count_by_policy", replace=true}; 					
+run;					
+quit;					
+					
+/* below works to count the number of distinct vehicles by policy\state */					
+proc cas;					
+   session casauto;					
+   simple.distinct /                                					
+      inputs={"DummyVin"},                          					
+      table={caslib="casuser",name="policy", groupBy={"POLNO","State"}},                     					
+      casOut={caslib="casuser",name="car_count_by_policy_state", indexvars={"POLNO"}, replace=true}; 					
+run;					
+quit;	
+
+/* VALUE OF x below was created by rand('uniform') function */
+/* below will create the sum,min,mean,n,max of x at a policy level of detail */
+proc cas;
+   session casauto;
+   simple.summary /                              
+      inputs={"x"},                         
+      subSet={"SUM", "MIN", "MEAN", "N","MAX"},        
+	  table={caslib="casuser",name="premside4cas", groupBy={"UniquePolicy_ID"}},   
+      casout={name="emod_out", replace=True}; 
+run;
+quit;
+
+/* below will show how many distinct values for the three variables listed as inputs */
+proc cas;					
+   session casauto;					
+   simple.distinct /                                					
+      inputs={"SICCodeTopLevelGroups","SICCodeandDescription","SICCodeMajorandDescription"},                          					
+      table={caslib="KPMGDATA",name="PREMANDLOSS"},                     					
+      casOut={caslib="casuser",name="car_count_by_policy", replace=true}; 					
+run;					
+quit;		
+

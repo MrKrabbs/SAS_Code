@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-16"?><Task schemaVersion="7.2">
+   <Registration>
+      <Name>Characterize Data</Name>
+      <Description>The Characterize Data task creates summary report, graphs, and frequency and univariate SAS data sets that describe the main characteristics of the data.</Description>
+      <GUID>54CB49F5-0888-4853-9DB6-43C50AED3982</GUID>
+      <Procedures>FREQ MEANS SQL UNIVARIATE</Procedures>
+      <Links>
+         <Link href="http://documentation.sas.com/?softwareId=STUDIOBASIC&amp;softwareVersion=5.2&amp;softwareContextId=tasks&amp;requestor=inapp">SAS Studio Task Reference Guide</Link>
+         <Link href=""> </Link>
+         <Link href=""> </Link> 
+		  <Link href="http://documentation.sas.com/?softwareId=MVADOC&amp;softwareVersion=5.2_9.4&amp;softwareContextId=proc_freq&amp;requestor=inapp">The FREQ Procedure</Link>
+         <Link href=""> </Link>
+         <Link href=""> </Link> 
+		  <Link href="http://documentation.sas.com/?softwareId=MVADOC&amp;softwareVersion=5.2_9.4&amp;softwareContextId=proc_means&amp;requestor=inapp">The MEANS Procedure</Link>
+         <Link href=""> </Link>
+         <Link href=""> </Link> 
+		  <Link href="http://documentation.sas.com/?softwareId=MVADOC&amp;softwareVersion=5.2_9.4&amp;softwareContextId=proc_sql&amp;requestor=inapp">The SQL Procedure</Link>
+         <Link href=""> </Link>
+         <Link href=""> </Link> 
+		  <Link href="http://documentation.sas.com/?softwareId=MVADOC&amp;softwareVersion=5.2_9.4&amp;softwareContextId=proc_univariate&amp;requestor=inapp">The UNIVARIATE Procedure</Link>
+         <Link href=""> </Link>
+         <Link href=""> </Link>         
+         <Link href="http://support.sas.com/training/studio">SAS Tutorials</Link>      
+      </Links>
+      <Version>5.2</Version>
+   </Registration>
+
+   <Metadata>
+      <DataSources>
+         <DataSource name="dataset" where="true">
+            <Roles>
+               <Role exclude="categoryVars,byVar,dateVars" maxVars="0" minVars="0" name="analysisVars" type="A">Variables:</Role>
+               <Role exclude="analysisVars,byVar,,dateVars" maxVars="0" minVars="0" name="categoryVars" type="A">Categorical variables:</Role>
+               <Role exclude="categoryVars,analysisVars,,dateVars" maxVars="1" minVars="0" name="byVar" type="A">Grouping variable:</Role>
+               <Role exclude="analysisVars,categoryVars,byVar" maxVars="0" minVars="0" name="dateVars" type="A">Date variables:</Role>               
+            </Roles>
+         </DataSource>
+      </DataSources>
+      
+      <Options>
+         <Option inputType="string" name="datatab">DATA</Option>        
+         <Option inputType="string" name="datagrp">DATA</Option>
+         <Option inputType="string" name="autogrp">AUTOMATIC CHARACTERIZATION</Option>
+         <Option inputType="string" name="customgrp">CUSTOM CHARACTERIZATION</Option>
+         <Option inputType="string" name="rolesgrp">ROLES</Option>
+         <Option inputType="string" name="optionstab">OPTIONS</Option>
+         <Option inputType="string" name="chargrp">CATEGORICAL VARIABLES</Option>
+         <Option defaultValue="1" inputType="checkbox" name="freqTable">Frequency table</Option>
+         <Option defaultValue="1" inputType="checkbox" name="freqChart">Frequency chart</Option>
+         <Option defaultValue="0" inputType="checkbox" name="levelsTable">Number of levels table</Option>
+         <Option defaultValue="0" inputType="checkbox" name="keepMissing">Treat missing values as valid level</Option>
+         <Option defaultValue="0" inputType="checkbox" name="limitchk">Limit categorical values</Option>
+         <Option decimalPlaces="0" defaultValue="30" inputType="numstepper" invalidMessage="Enter an integer value greater than 0 and less than 100" maxValue="99" minValue="1" missingMessage="Enter an integer value greater than 0 and less than 100" name="limit" promptMessage="Enter an integer value greater than 0 and less than 100" rangeMessage="Enter an integer value greater than 0 and less than 100" required="true" width="50px">Maximum number of unique values:</Option>
+         <Option inputType="string" name="numgrp">NUMERIC VARIABLES</Option>         
+         <Option defaultValue="1" inputType="checkbox" name="statTable">Descriptive statistics</Option>
+         <Option defaultValue="1" inputType="checkbox" name="histogram">Histogram</Option>
+         <Option inputType="string" name="dategrp">DATE VARIABLES</Option>
+         <Option defaultValue="1" inputType="checkbox" name="minMaxDate" nlskey="minMaxDateKey">Display minimum and maximum date</Option>
+         <Option defaultValue="0" inputType="checkbox" name="seriesPlot" nlskey="seriesPlotKey">Frequency plot</Option>
+		 <Option defaultValue="1" inputType="checkbox" name="chkRunInfo">Obtain column information</Option>
+
+         <!-- The following options do not appear in the UI. -->
+         <Option inputType="string" name="catTableTitle">Frequencies for Categorical Variables</Option>
+         <Option inputType="string" name="numTableTitle">Descriptive Statistics for Numeric Variables</Option>
+         <Option inputType="string" name="dateTableTitle">Minimum and Maximum Dates</Option>
+         <Option inputType="string" name="datePlotTitle">Date Frequencies</Option>
+         <Option inputType="string" name="catcomment">Analyze categorical variables</Option>
+         <Option inputType="string" name="numcomment">Analyze numeric variables</Option>
+         <Option inputType="string" name="datecomment">Analyze date variables</Option>
+         <Option inputType="string" name="datelabel1">Date variable</Option>
+         <Option inputType="string" name="datelabel2">Minimum date</Option>
+         <Option inputType="string" name="datelabel3">Maximum date</Option>         
+      </Options>
+   </Metadata>
+
+   <UI>
+   <Container option="datatab">
+      <Group open="true" option="datagrp">
+         <DataItem data="dataset"/>
+	<!--	 <OptionItem option="chkRunInfo"/> -->
+      </Group>
+			<RoleItem role="dateVars"/>
+         	<RoleItem role="analysisVars"/>
+
+
+   </Container>
+   
+ <!--  <Container option="optionstab">
+      <Group open="true" option="chargrp">
+         <OptionItem option="freqTable"/>
+         <OptionItem option="freqChart"/>
+         <OptionItem option="keepMissing"/>
+         <OptionItem option="limitchk"/>
+         <OptionItem option="limit"/>
+      </Group>
+      <Group open="true" option="numgrp">
+         <OptionItem option="statTable"/>
+         <OptionItem option="histogram"/> 
+      </Group>
+      <Group option="dategrp">
+         <OptionItem option="minMaxDate"/>
+         <OptionItem option="seriesPlot"/>
+      </Group>
+   </Container> -->
+
+  
+   </UI>
+<!--
+   <Dependencies>
+      <Dependency condition="($limitchk == 1)">
+         <Target action="show" conditionResult="true" option="limit"/>
+         <Target action="hide" conditionResult="false" option="limit"/>
+      </Dependency>
+
+   </Dependencies>
+   
+   <Requirements>
+      <Requirement condition="$analysisVars.size() &gt; 0 || $categoryVars.size() &gt; 0 || $dateVars.size() &gt; 0">
+         <Message>Select at least one variable to characterize.</Message>
+      </Requirement>
+   </Requirements> -->
+
+   <CodeTemplate>
+<![CDATA[
+ods noproctitle;
+
+#if( $analysisVars.size() > 0 )
+
+##if ($chkRunInfo=='1' ) 
+
+ods output HighCardinalityDetails=WORK.HC;
+proc cas;datapreprocess.highcardinality /#if( $analysisVars.size() > 0 )
+    inputs={ #foreach( $item in $analysisVars ) {name="$item"}#if( $foreach.hasNext),#end#end}
+#end table ={caslib="$dataset.getLibrary()",name="$dataset.getTable()"};run;quit;
+ods WORK.HC CLOSE;
+
+ods output ColumnInfo=WORK.CI;
+proc casutil;
+	contents casdata="$dataset.getTable()" incaslib="$dataset.getLibrary()";
+run;quit;
+ods WORK.CI CLOSE;
+
+
+PROC SQL;
+SELECT COUNT(*) INTO :RECORDS FROM $dataset;
+CREATE TABLE ALL_INFO AS 
+SELECT A.*, B.* FROM WORK.HC A INNER JOIN WORK.CI B ON A.VARIABLE=B.COLUMN;
+SELECT QUOTE(TRIM(VARIABLE)) INTO :FREQ_THESE SEPARATED BY ','  FROM ALL_INFO WHERE CARDINALITYESTIMATE < 500 AND UPCASE(TYPE) in ('CHAR','VARCHAR');
+SELECT COUNT(*) INTO :CNT_FREQ_THESE FROM ALL_INFO WHERE CARDINALITYESTIMATE < 500 AND UPCASE(TYPE) in ('CHAR','VARCHAR');
+SELECT TRIM(VARIABLE) INTO :BIN_THESE SEPARATED BY ' '  FROM ALL_INFO WHERE UPCASE(TYPE) IN ('INT64','INT32','DOUBLE');
+SELECT COUNT(*) INTO :CNT_BIN_THESE FROM ALL_INFO WHERE UPCASE(TYPE) IN ('INT64','INT32','DOUBLE');
+QUIT;
+
+%IF &CNT_FREQ_THESE > 0 %THEN
+%DO;
+	proc cas;
+	   session casauto;
+	   simple.freq /                                
+	      inputs={&FREQ_THESE.},                         
+	      table={caslib="$dataset.getLibrary()",name="$dataset.getTable()"},                     
+	      casOut={caslib="casuser",name="vars_freqd_nonDates", replace=true}; 
+	run;
+	quit;
+
+data WORK.FREQ_INFO_NO_DATES;
+	SET CASUSER.vars_freqd_nonDates;
+	LENGTH VARIABLE $32.;
+	LENGTH VALUE $130.;
+	LENGTH MEAN MIN MAX 8.;
+	VARIABLE=TRIM(_COLUMN_);
+	VALUE=TRIM(_FMTVAR_);
+	MEAN=.;
+	MIN=.;
+	MAX=.;
+	RENAME _FREQUENCY_=FREQUENCY;
+	DROP _COLUMN_ _CHARVAR_ _FMTVAR_ _LEVEL_;
+run;
+
+%END;
+
+#if( $dateVars.size() > 0 )
+proc cas;
+   session casauto;
+   simple.freq /                                
+      inputs={#foreach( $item in $dateVars ) {format="MMYYS7.",name="$item"}#if( $foreach.hasNext ) ,#end#end},                         
+      table={caslib="$dataset.getLibrary()",name="$dataset.getTable()"},                     
+      casOut={caslib="casuser",name="vars_freqd_dates", replace=true}; 
+run;
+quit;
+
+data WORK.FREQ_INFO_W_DATES;
+	SET CASUSER.vars_freqd_dates;
+	LENGTH VARIABLE $32.;
+	LENGTH VALUE $130.;
+	LENGTH MEAN MIN MAX 8.;
+	VARIABLE=TRIM(_COLUMN_);
+	VALUE=TRIM(_FMTVAR_);
+	MEAN=.;
+	MIN=.;
+	MAX=.;
+	RENAME _FREQUENCY_=FREQUENCY;
+	DROP _COLUMN_  _FMTVAR_ _LEVEL_ _NUMVAR_;
+run;
+#end
+
+%IF &CNT_BIN_THESE > 0 %THEN
+%DO;
+ods output BinDetails=WORK.BT;
+proc binning data=$dataset numbin=20 method=quantile;
+	input &BIN_THESE.;
+RUN;
+ODS WORK.BT CLOSE;
+
+
+DATA WORK.BIN_INFO;
+	SET WORK.BT(rename=(Variable=TempVariable));
+
+	LENGTH VARIABLE $32.;
+	LENGTH VALUE $130.;
+	VARIABLE=trim(TempVariable);
+
+	IF BINID=0 THEN
+		VALUE='Missing';
+
+	IF BINID > 0 THEN
+		VALUE=PUT(BINID * 5, z3.)||'_Quantile';
+	RENAME NInBin=FREQUENCY;
+	DROP BINLOWERBND BINUPPERBND BINWIDTH STD BINID TempVariable;
+RUN;
+
+%END;
+
+DATA WORK.ALL_OBS;
+RETAIN VARIABLE VALUE FREQUENCY PERCENT_OF_RECORDS MEAN MIN MAX;
+SET 
+
+%IF &CNT_BIN_THESE > 0 %THEN
+%DO;
+WORK.BIN_INFO
+%END;
+
+%IF &CNT_FREQ_THESE > 0 %THEN
+%DO;
+WORK.FREQ_INFO_NO_DATES
+%END;
+
+#if( $dateVars.size() > 0 )
+WORK.FREQ_INFO_W_DATES
+#end
+;
+IF VALUE NOT IN ('MISSING') AND FREQUENCY = 0 THEN DELETE;
+
+PERCENT_OF_RECORDS=FREQUENCY/&RECORDS.;
+FORMAT PERCENT_OF_RECORDS PERCENT10.2;
+RUN;
+
+
+##end
+
+filename outcsv "/home/sasdemo/OBS_ALL.CSV";
+
+proc export data=WORK.ALL_OBS
+            outfile=outcsv
+            dbms=csv replace;
+run;
+
+filename outcsv;
+
+#end
+
+
+]]>
+   </CodeTemplate>
+
+</Task>

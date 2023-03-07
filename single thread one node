@@ -1,0 +1,17 @@
+data casuser.maybe / single=yes ;
+
+set casuser.bin_info_out;
+by _BinId_;
+retain Real_Bin;
+
+Length Cylinders_U_L $50.;
+Cylinders_U_L = cats(_binlowerbnd_,'  -  ',_binupperbnd_);
+
+if _NinBin_ > 0 then 
+do;
+	Real_bin= sum(0, 1, Real_Bin);
+	output;
+end;
+
+
+run;

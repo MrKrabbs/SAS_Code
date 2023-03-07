@@ -1,0 +1,42 @@
+*************  SAS Gradient Boosting using Monotonic constraints  **********************
+Below is great paper by Austin Cook on using Monotonic constraints for a SAS Gradient Boosting Model
+https://blogs.sas.com/content/subconsciousmusings/2020/06/03/monotonic-constraints-with-sas/
+
+
+***************** Excellent Blogs on transitioning from GLM to Gradient Boosting Models ******************
+
+https://towardsdatascience.com/from-glm-to-gbm-5ff7dbdd7e2f
+https://towardsdatascience.com/from-glm-to-gbm-part-2-7045e3fd52a2
+
+Below is JupyterNotebook code that supports the two-above links on transitioning from GLM to Gradient Boosting Models
+
+https://nbviewer.org/github/jphall663/interpretable_machine_learning_with_python/blob/master/glm_mgbm_gbm.ipynb
+
+
+
+**************** Below is an example of using the restrict statement **********************
+proc hpgenselect data=DATA_IN.SEV_MODEL technique=nrridg;
+	class REGION RATING_CATEGORY OCCUPATION MSTATUS CAR_USE EDUCATION GENDER 
+		URBANICITY CAR_TYPE DUI REVOKED / ORDER=FREQ REF=FIRST PARAM=GLM;
+	model Auto_Loss=AGE BLUEBOOK INCOME URBANICITY CAR_TYPE DUI REVOKED / dist=gamma 
+		link=log;
+	*RESTRICT CAR_TYPE -2 0 1 1 0;
+	*RESTRICT CAR_TYPE 0 -1 1;*THIS WILL SET EQUAL SPORTSCAR AND PICKUP;
+	RESTRICT CAR_TYPE 0 0 1;*this means [ (zero * BetaOne) + (zero * BetaTwo) + (1 * BetaThree) = 0];
+	*RESTRICT CAR_TYPE 1 -1 < 0;*THEY ARE LINEAR COMBINATIONS OF THE COEFFICENTS;
+	*-2 is multiplied by first level parameter,0 is second level, 1 is third level parameter;
+	output out=WORK.HPgenselect linp pred lower upper / alpha=0.05;
+	weight Rated_Premium;
+	ods output  ParameterEstimates=tempParmeterEstimates FitStatistics=fs_out(rename=(label=FitMeasure));
+run;
+
+%PRN(WORK.tempParmeterEstimates,200);
+
+*restrict CAR_TYPE  1 0 -1;*MADE MINIVAN AND PICKUP IDENTICAL;
+*restrict CAR_TYPE  1 0 1;*MADE MINIVAN AND PICKUP OPPOSITE;
+*restrict CAR_TYPE  1 0 0;*MADE MINIVAN AND SUV=0;
+*restrict CAR_TYPE  1 0 -0;*MADE MINIVAN AND SUV=0;
+*restrict CAR_TYPE  1 0 2;*MADE SUV=0;
+*restrict CAR_TYPE  2 0 1;*MADE SUV=0;
+
+ORDER=FREQ REF=FIRST PARAM=GLM; 

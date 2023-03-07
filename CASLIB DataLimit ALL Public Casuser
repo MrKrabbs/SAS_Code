@@ -1,0 +1,3 @@
+libname premium cas caslib=public datalimit=ALL;
+
+libname claims cas caslib=casuser datalimit=ALL;

@@ -1,0 +1,8 @@
+proc cas;                                   /*1*/
+   table.columninfo result=collInfo         /*2*/
+         / table={caslib="Public",name="FORPYTHON_V2"};
+      collist=collInfo["ColumnInfo"];       /*3*/
+   saveresult colList casout="colList";     /*4*/
+
+   table.fetch / table="colList";           /*5*/
+quit;

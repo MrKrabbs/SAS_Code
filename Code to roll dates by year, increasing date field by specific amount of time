@@ -1,0 +1,135 @@
+**********************    INSURANCE_DEMO_CS ******************************;
+data casuser.change_date;
+set LABDATA.INSURANCE_DEMO_CS;
+
+New_Claim_Date = intnx('year', Claim_Date, 3, 's');
+New_effective_date=intnx('year',effective_date,3,'s');
+New_Claim_Year = intnx('year',Claim_Year,3,'s');
+New_Effective_Year = intnx('year',Effective_Year,3,'s');
+
+if substr(trans_date,7) = '2017' then substr(trans_date,7)='2020';
+if substr(trans_date,7) = '2018' then substr(trans_date,7)='2021';
+if substr(trans_date,7) = '2019' then substr(trans_date,7)='2022';
+
+if New_Claim_Date < New_effective_date then delete;
+
+drop Claim_Date Claim_Year Effective_Year effective_date;
+
+format New_Claim_Date New_effective_date MMDDYY10.;
+format New_Claim_Year New_Effective_Year YEAR.;
+format Claim_month Effective_Month  monname3.;
+run;
+
+proc casutil;
+	droptable incaslib="LABDATA" casdata="INSURANCE_DEMO_CS" quiet;
+run;quit;
+
+data LABDATA.INSURANCE_DEMO_CS (promote=yes);
+set casuser.change_date;
+rename 
+New_Claim_Date=Claim_Date
+New_effective_date=effective_date
+New_Claim_Year =Claim_Year
+New_Effective_Year=Effective_Year;
+run;
+
+
+proc casutil;
+	save incaslib="LABDATA" outcaslib="LABDATA" casdata="INSURANCE_DEMO_CS" replace;
+run;QUIT;
+
+**********************    INSURANCE_DEMO_CS_P ******************************;
+data casuser.change_date;
+set LABDATA.INSURANCE_DEMO_CS_P;
+
+New_Claim_Date = intnx('year', Claim_Date, 3, 's');
+New_effective_date=intnx('year',effective_date,3,'s');
+New_Claim_Year = intnx('year',Claim_Year,3,'s');
+New_Effective_Year = intnx('year',Effective_Year,3,'s');
+New_Trans_Date_CONVERTED = intnx('year',Trans_Date_CONVERTED,3,'s');
+
+if substr(trans_date,7) = '2017' then substr(trans_date,7)='2020';
+if substr(trans_date,7) = '2018' then substr(trans_date,7)='2021';
+if substr(trans_date,7) = '2019' then substr(trans_date,7)='2022';
+
+
+drop Claim_Date Claim_Year Effective_Year effective_date Trans_Date_CONVERTED;
+
+format New_Claim_Date New_effective_date MMDDYY10.;
+format New_Claim_Year New_Effective_Year YEAR.;
+format New_Trans_Date_CONVERTED	DDMMYY10.;
+format Claim_month Effective_Month  monname3.;
+run;
+
+data casuser.change_date2;
+set casuser.change_date;
+
+if New_Claim_Date < New_effective_date then delete;
+
+
+
+run;
+
+
+proc casutil;
+	droptable incaslib="LABDATA" casdata="INSURANCE_DEMO_CS_P" quiet;
+run;quit;
+
+data LABDATA.INSURANCE_DEMO_CS_P (promote=yes);
+set casuser.change_date2;
+rename 
+New_Claim_Date=Claim_Date
+New_effective_date=effective_date
+New_Claim_Year =Claim_Year
+New_Effective_Year=Effective_Year
+New_Trans_Date_CONVERTED =Trans_Date_CONVERTED;
+run;
+
+
+proc casutil;
+	save incaslib="LABDATA" outcaslib="LABDATA" casdata="INSURANCE_DEMO_CS_P" replace;
+run;QUIT;
+
+
+
+**********************    INSURANCE_DEMO_CF ******************************;
+data casuser.change_date;
+set LABDATA.INSURANCE_DEMO_CF;
+
+New_Claim_Date = intnx('year', Claim_Date, 3, 's');
+New_effective_date=intnx('year',effective_date,3,'s');
+New_Claim_Year = intnx('year',Claim_Year,3,'s');
+New_Effective_Year = intnx('year',Effective_Year,3,'s');
+
+if substr(trans_date,7) = '2017' then substr(trans_date,7)='2020';
+if substr(trans_date,7) = '2018' then substr(trans_date,7)='2021';
+if substr(trans_date,7) = '2019' then substr(trans_date,7)='2022';
+
+if New_Claim_Date < New_effective_date then delete;
+
+drop Claim_Date Claim_Year Effective_Year effective_date;
+
+format New_Claim_Date New_effective_date MMDDYY10.;
+format New_Claim_Year New_Effective_Year YEAR.;
+format Claim_month Effective_Month  monname3.;
+run;
+
+proc casutil;
+	droptable incaslib="LABDATA" casdata="INSURANCE_DEMO_CF" quiet;
+run;quit;
+
+data LABDATA.INSURANCE_DEMO_CF (promote=yes);
+set casuser.change_date;
+rename 
+New_Claim_Date=Claim_Date
+New_effective_date=effective_date
+New_Claim_Year =Claim_Year
+New_Effective_Year=Effective_Year;
+run;
+
+
+proc casutil;
+	save incaslib="LABDATA" outcaslib="LABDATA" casdata="INSURANCE_DEMO_CF" replace;
+run;QUIT;
+
+

@@ -1,0 +1,26 @@
+/* SAS code */
+/* below makes the assumption you have a variable called uniqueRecordID in your source data */
+/* ONLY thing you must do is provide an entry into the line below, replace YourModel_ with something short\descriptive for your model */
+%LET MODEL_NAME=YourModel_;
+
+
+/******************************  no need to touch anything below unless you have a specific out of the ordinary reason to do so */
+%dmcas_varmacro(name=dm_targetv7, metadata=&dm_metadata, where=%nrbquote(ROLE='TARGET'), key=NAME, quote=N, comma=N);
+%dmcas_varmacro(name=dm_predv7, metadata=&dm_metadata, where=%nrbquote(ROLE='PREDICT' AND SUBSTR(NAME,1,2)='P_'), key=NAME, quote=N, comma=N);
+
+/* IF table already exists, then drop it, if it does not exist then be quiet (notice the word quiet the drop table statement) */
+proc casutil incaslib="public" outcaslib="public";
+	droptable casdata="&MODEL_NAME.&sysuserid." quiet;
+run;quit;
+
+DATA PUBLIC.&MODEL_NAME.&sysuserid.(promote=yes);
+
+set &dm_data.;
+
+LABEL %dm_predv7="&MODEL_NAME.%dm_targetv7";
+RENAME %dm_predv7 = &MODEL_NAME.%dm_targetv7; 
+
+
+KEEP %dm_predv7 uniqueRecordID;
+
+run;

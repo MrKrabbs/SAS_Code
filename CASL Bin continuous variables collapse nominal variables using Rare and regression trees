@@ -1,0 +1,55 @@
+proc cas;                                  
+   table.columninfo result=collInfo        
+         / table={caslib="Public",name="PUREPREM_DATA"};
+      collist=collInfo["ColumnInfo"];     
+   saveresult colList casout="colList";     
+
+   table.fetch / table="colList";          
+quit;
+
+
+/************************                Nominal Variables                          *********************************************/
+proc cas;datapreprocess.cattrans /table ={caslib="Public",name="PUREPREM_DATA"} inputs=${Occupation,Education,Rating_Category, Car_Type, MotorVehicleRecordPoint} tech="grouprare" 
+casout={name="rare_out",replace=true} outVarsNamePrefix="Rare" copyallvars=true;run;quit;
+
+
+/*code below will allow the algorith to select the corrrect number of bins */
+proc cas;datapreprocess.cattrans /table ="rare_out" inputs=${Occupation,Education,Rating_Category, Car_Type, MotorVehicleRecordPoint} target="PurePremium" tech="rtree" 
+casout={name="rt_out",replace=true} outVarsNamePrefix="RTree" copyallvars=true;run;quit;
+
+
+
+
+/************************         END Nominal Variables                          *********************************************/
+
+
+PROC CAS;dataPreprocess.discretize / table={name="rt_out"} arguments={minNBins=20,maxNBins=20} inputs={"Bluebook", "Income", "Age", "Car_Age", "Travel_Time"} targets={"PurePremium"}  method="chimerge"    evaluationStats=True
+casout={name="chimerge_out",replace=true} outVarsNamePrefix="chi20" copyallvars=true;run;quit;
+
+PROC CAS;dataPreprocess.discretize / table={name="chimerge_out"} arguments={minNBins=20,maxNBins=20} inputs={"Bluebook", "Income", "Age", "Car_Age", "Travel_Time"} targets={"PurePremium"}  method="dtree"    evaluationStats=True
+casout={name="DT20_out",replace=true} outVarsNamePrefix="DT20" copyallvars=true;run;quit;
+
+PROC CAS;dataPreprocess.discretize / table={name="DT20_out"} inputs={"Bluebook", "Income", "Age", "Car_Age", "Travel_Time"} targets={"PurePremium"}  method="dtree"    evaluationStats=True
+casout={name="DTUNK_out",replace=true} outVarsNamePrefix="DTUNK" copyallvars=true;run;quit;
+
+PROC CAS;dataPreprocess.discretize / table={name="DTUNK_out"} arguments={minNBins=20,maxNBins=20} inputs={"Bluebook", "Income", "Age", "Car_Age", "Travel_Time"} targets={"PurePremium"}  method="rtree"    evaluationStats=True
+casout={name="RT20_out",replace=true} outVarsNamePrefix="RT20" copyallvars=true;run;quit;
+
+PROC CAS;dataPreprocess.discretize / table={name="RT20_out"} inputs={"Bluebook", "Income", "Age", "Car_Age", "Travel_Time"} targets={"PurePremium"}  method="rtree"    evaluationStats=True
+casout={name="RTUNK_out",replace=true} outVarsNamePrefix="RTUNK" copyallvars=true;run;quit;
+
+
+proc casutil;
+	droptable incaslib="PUBLIC" casdata="PUREPREM_GRPS_BINS" quiet;
+run;QUIT;
+
+DATA PUBLIC.PUREPREM_GRPS_BINS(PROMOTE=YES);
+SET CASUSER.RTUNK_OUT;
+RUN;
+
+proc casutil;
+	save incaslib="PUBLIC" outcaslib="PUBLIC" casdata="PUREPREM_GRPS_BINS" replace;
+run;QUIT;
+
+
+
