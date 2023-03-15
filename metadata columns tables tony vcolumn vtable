@@ -1,0 +1,43 @@
+/* ONLY CHANGE TO CODE SHOULD TAKE PLACE IN ROW #6  */
+/* BELOW ARE JUST EXAMPLES OF POSSIBLE LIBRARIES: STAGE PUBLIC CASUSER SASHELP, PUT YOUR ACTUAL LIBRARIES IN LIST BELOW (ROW #6), EXACTLY IN THE SAME MANNER */
+/* REASON THE MACRO VARIABLE IS CALLED LIBRARIES_I_CAN_SEE IS BECAUSE WHEN YOU CLICK YOUR LIBRARY ICON, YOU SHOULD SEE YOUR LIBRARIES */
+/* OK TO KEEP THE SASHELP LIBRARY IN THE LIST BELOW. IF YOU KEEP SASHELP IN , JUST KNOW IT WILL GENERATE 17,000 RECORDS FROM ALL THE SASHELP TABLES */
+
+%let LIBRARIES_I_CAN_SEE = %UPCASE( STAGE PUBLIC CASUSER SASHELP);
+
+%macro namelist(varlist);
+   %let word_cnt=%sysfunc(countw(&varlist)); 
+   %let list=;
+   %do i = 1 %to &word_cnt; 
+     %let tmpName=%qscan(%bquote(&varlist),&i);
+     %let list = &list %bquote("&tmpName.");
+   %end;
+   &list;
+%mend;
+
+%let SEND2_SQL = %namelist(&LIBRARIES_I_CAN_SEE);
+
+
+PROC SQL;
+	CREATE TABLE WORK.QUERY_FOR_TABLE AS
+		SELECT
+			(t1.libname) LABEL='Library Name',
+			(t1.memname) LABEL='Member Name',
+			(t1.memtype) LABEL='Member Type',
+			(t1.'name'n) LABEL='Column Name',
+			(t1.'type'n) LABEL='Column Type',
+			(t1.'length'n) LABEL='Column Length',
+			(t1.label) LABEL='Column Label',
+			(t1.format) LABEL='Column Format',
+			(t2.nobs) LABEL='Number of Physical Observations'
+		FROM
+			SASHELP.VCOLUMN t1
+				INNER JOIN SASHELP.VTABLE t2 ON (t1.libname = t2.libname)
+					AND (t1.memname = t2.memname)
+		WHERE
+			t1.LIBNAME IN (%UNQUOTE(&SEND2_SQL))
+	;
+QUIT;
+RUN;
+
+/* THE OUTPUT OF THIS CODE IS THE WORK TABLE\DATASET CALLED QUERY_FOR_TABLE */
