@@ -1,0 +1,4 @@
+%if not(&radioSelection.=None) %then
+%do;
+%let keep_in_Model = %_flw_get_column_list(_flw_prefix=colselKeepInModel);
+%end;
