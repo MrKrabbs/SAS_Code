@@ -1,0 +1,821 @@
+/* below are notes from Joao via chat */
+Message List
+ahh ... you may need to defined "resizable"... by João Oliveira
+João Oliveira9:53 AM
+ahh ... you may need to defined "resizable" : false 😉
+
+This looks awesome, so it's working for my ... by Matt Bailey
+Matt Bailey9:57 AM
+This looks awesome, so it's working for my most 2 right columns (great), not sure if you were expecting it to work on 2 columns. This is exactly what I wanted. Looking good. Thank you!
+
+
+João Oliveira9:59 AM
+you can have several frozen columns, as long as they are either at most left and/or right
+ahh you need a minimum of two columns not frozen ; )
+you can also reset the (missing) and do not show the word (missing) ... and accept SAS missing value ( . ) as a valid entry 😉
+
+João Oliveira10:04 AM
+
+You need run a External service upon the SAVE action ... which can be a JobExecution that simply does nothing 
+then on the ExternalService definition we can define "afterExecActions" ... which includes:
+
+set VA param(s) values
+go to a page and then set param values, refresh elements on that page...
+refresh VA elements
+ 
+Thank you, got it by Matt Bailey
+Matt Bailey10:06 AM
+Thank you, got it
+
+
+look at this exemple by João Oliveira, has an attachment.
+João Oliveira10:08 AM
+look at this exemple
+
+HKL_SPC_ProdOverview_1.ctrl.json
+ 
+João Oliveira10:10 AM
+the externalService "SPC_StartInvestigation" does a lot of stuff but you can have one doing nothing ... then set "async" : false to wait for the completion 🙂 
+
+Matt Bailey10:17 AM
+What triggers the externalService? Is it a menu selection where user triggers it by menu selection? Or something else?
+
+João Oliveira10:20 AM
+when you press 'Save'
+
+My goal is to have user select save and the... by Matt Bailey
+Matt Bailey10:45 AM
+My goal is to have user select save and then the data is saved in memory and then to disk. However, afer the save completes the "SaveToDisk" the "SaveToDisk" button is enabled leading me to think I need
+to save again. But....the data has saved to disk already. Below are my settings, have I missed something?
+
+ 
+
+
+Below is from:VATableEditor_DDC.html
+OnSaveMode: 3,            // 1 = independent | 2 = ask to Persist | 3 = combined (save in memory then persist changes)
+
+ 
+
+
+Below is from : report defintion for specific VA report
+    "modules": {
+        "cellChanges": true,
+        "cellEditDlg": false,
+        "history": true,
+        "saveChanges": true,
+
+  image   by Matt Bailey
+
+
+João Oliveira11:04 AM
+Mind that the definitions on at report level and then at table level, will overwrite the one previously defined
+That was the issue by Matt Bailey
+
+Matt Bailey11:05 AM
+That was the issue
+
+
+
+
+
+
+
+
+
+
+{
+	"crtlInfo": {
+		"version": 1,
+		"creationDate": "16Jun2021 10:30",
+		"createdBy": "porjoo",
+		"lastModifDate": "16Jun2021 10:30",
+		"lastModifBy": "porjoo"
+	},
+	"casServer": "cas-shared-default",
+	"reportID": [
+		"dbe8b6fc-03c3-40e1-8d20-b1bc9159e79b",
+		"0f05808a-1c09-4288-ae52-fa34e62853dc",
+		"97bc7f0d-0cc1-4b69-9970-35da318ad368"
+	],
+	"defaultBehaviour": "editable",
+	"trackChanges": true,
+	"ValidateTable": false,
+	"ReopenReportAfterSaving": false,
+	"RecoverUnSavedChanges": 1,
+	"GetReasonForChanges": 0,
+	"OnSaveMode": 2,
+	"TableLayout": "fitDataStretch",
+	"validUsers": {
+		"groups": [
+			"SASAdministrators",
+			"HenkelUsers",
+			"group1",
+			"group2",
+			"group3",
+			"group4",
+			"group5",
+			"group6"
+		],
+		"users": [
+			"porjoo",
+			"sasdemo",
+			"snlref",
+			"sbxavh",
+			"sbxkta"
+		],
+		"defAuthorizations": 94
+	},
+	"modules": {
+		"cellChanges": true,
+		"history": true,
+		"saveChanges": true,
+		"save2Disk": true,
+		"addRows": true,
+		"deleteRows": true,
+		"updtColVal": true,
+		"download": true,
+		"downloadCSV": true,
+		"downloadPDF": true,
+		"downloadJSON": true,
+		"downloadXLSX": true,
+		"downloadHTML": true,
+		"printing": true,
+		"clipboard": true,
+		"calculator": true,
+		"logger": true,
+		"aggregation": true,
+		"recoverChanges": true,
+		"callExtServices": true
+	},
+	"notMappedColumnsDefaults": {
+		"name": "unknown",
+		"editable": false,
+		"visible": false,
+		"onDownload": true,
+		"onPrint": true,
+		"onClipboard": true,
+		"calculator": true,
+		"formula": null,
+		"validation": {
+			"required": false,
+			"useFormula": null,
+			"default": null,
+			"min": null,
+			"max": null,
+			"minLength": null,
+			"maxLength": null,
+			"in": null,
+			"starts": null,
+			"ends": null,
+			"regex": null
+		},
+		"aggregation": {
+			"topCalc": {
+				"method": null,
+				"precision": null,
+				"label": null
+			},
+			"bottomCalc": {
+				"method": null,
+				"precision": null,
+				"label": null
+			}
+		}
+	},
+	"externalServices": [
+		{
+			"execMode": "background",
+			"name": "SPC_StartInvestigation",
+			"label": "<i class='fas fa-user-edit'></i>&ensp;Investigate&nbsp;",
+			"ViyaService": "jobExecution",
+			"service": {
+				"url": "/jobExecution/jobs",
+				"method": "POST",
+				"async": true,
+				"headers": {
+					"Content-Type": "application/vnd.sas.job.execution.job.request+json",
+					"Accept": "application/vnd.sas.job.execution.job+json"
+				},
+				"data": {
+					"jobDefinitionUri": "/jobDefinitions/definitions/fb853301-96e1-4fdf-852e-c97c67de6757",
+					"arguments": {
+						"_contextName": "SAS Job Execution compute context",
+						"_VAUserID": "getReportUserId()",
+						"_CUST_ID": "getColumnValue(Cust_ID)",
+						"_PROD_ID": "getColumnValue(Prod_ID)",
+						"_VAR_ID": "getColumnValue(Var_ID)",
+						"_SPC_Row_UID": "getColumnValue(Row_UID)",
+						"_action": "execute",
+						"_output_type": "JSON",
+						"_debug": "log",
+						"_csrf": "$CSRF$"
+					}
+				}
+			},
+			"afterExecActions": {
+				"setFilterParams": {
+					"p_user_id": ""
+				},
+				"gotoPage": {
+					"waitBefore": 1000,
+					"page": "vi4091",
+					"setFilterParams": {
+						"p_user_id": "getReportUserId()"
+					},
+					"refreshVA": {
+						"waitBefore": 5000,
+						"filterParams": [
+							"p_user_id"
+						],
+						"inBetween": 1000,
+						"visualElems": [
+							"ve100061"
+						]
+					}
+				}
+			}
+		},
+		{
+			"execMode": "background",
+			"name": "SPC_UpdtAllTable+PlotComms",
+			"label": "<i class='fas fa-user-cog'></i>&ensp;Picking Batch&nbsp;",
+			"ViyaService": "jobExecution",
+			"service": {
+				"url": "/jobExecution/jobs",
+				"method": "POST",
+				"async": true,
+				"headers": {
+					"Content-Type": "application/vnd.sas.job.execution.job.request+json",
+					"Accept": "application/vnd.sas.job.execution.job+json"
+				},
+				"data": {
+					"jobDefinitionUri": "/jobDefinitions/definitions/bf74ce5e-0ced-4144-a4a3-ac5e2997554e",
+					"arguments": {
+						"_contextName": "SAS Job Execution compute context",
+						"_VAUserID": "getReportUserId()",
+						"_Updated_Rows": "getTableChangedRowsByUID()",
+						"_action": "execute",
+						"_output_type": "JSON",
+						"_debug": "log",
+						"_csrf": "$CSRF$"
+					}
+				}
+			},
+			"afterExecActions": {
+				"refreshVA": {
+					"waitBefore": 2000,
+					"visualElems": [
+						"ve11209",
+						"ve10864",
+						"ve9799"
+					],
+					"inBetween": 1000,
+					"filterParams": [
+						"p_alarm_filter"
+					]
+				}
+			}
+		}
+	],
+	"dataSources": [
+		{
+			"casLib": "HENKELCL",
+			"casTable": "HKL_ALLTABLE_ALL",
+			"validateOnLoad": true,
+			"trackChanges": true,
+			"OnSaveMode": 2,
+			"TableLayout": "fitDataStretch",
+			"RecoverUnSavedChanges": 1,
+			"GetReasonForChanges": 0,
+			"defaultBehaviour": "editable",
+			"columnDefaults": {
+				"primaryKey": false,
+				"editable": true,
+				"visible": true,
+				"onDownload": true,
+				"onPrint": true,
+				"onClipboard": true,
+				"calculator": true,
+				"validation": {
+					"required": true,
+					"useFormula": null,
+					"default": null,
+					"min": null,
+					"max": null,
+					"minLength": null,
+					"maxLength": null,
+					"in": null,
+					"starts": null,
+					"ends": null,
+					"regex": null
+				},
+				"aggregation": {
+					"topCalc": {
+						"method": null,
+						"precision": null,
+						"label": null
+					},
+					"bottomCalc": {
+						"method": null,
+						"precision": null,
+						"label": null
+					}
+				}
+			},
+			"authorizations": [
+				{
+					"groups": [
+						"SASAdministrators",
+						"HenkelUsers",
+						"group1",
+						"group2",
+						"group3",
+						"group4",
+						"group5",
+						"group6"
+					],
+					"users": [
+						"porjoo",
+						"snlref",
+						"sasdemo",
+						"sbxavh"
+					],
+					"grants": "S-E-U--"
+				}
+			],
+			"ctxMenuExtServices": [
+				"SPC_StartInvestigation"
+			],
+			"initialSort": [
+				{
+					"column": "Row_UID",
+					"dir": "asc"
+				}
+			],
+			"columns": [
+				{
+					"name": "Row_UID",
+					"primaryKey": true,
+					"visible": false
+				},
+				{
+					"name": "Code_Date",
+					"editable": false
+				},
+				{
+					"name": "first_inspection_date",
+					"editable": false
+				},
+				{
+					"name": "Cust_ID",
+					"editable": false
+				},
+				{
+					"name": "user_id",
+					"headerFilter": true,
+					"editorSelect": {
+						"from": "list",
+						"values": [
+							"getReportUserId()"
+						],
+						"defaultValue": "Batch",
+						"useOnHeaderFilter": true
+					}
+				},
+				{
+					"name": "SPC_comment",
+					"headerFilter": true,
+					"editable": false,
+					"validation": {
+						"minLength": 1,
+						"maxLength": 1024,
+						"regex": "(?<=^\\.{1}$)"
+					}
+				},
+				{
+					"name": "previous_comments",
+					"headerFilter": true,
+					"editable": false
+				},
+				{
+					"name": "subgroupname",
+					"editable": false
+				},
+				{
+					"name": "alarmvalue",
+					"editable": false
+				},
+				{
+					"name": "alarmvaluer",
+					"editable": false
+				},
+				{
+					"name": "Var_ID",
+					"headerFilter": true,
+					"editable": false
+				},
+				{
+					"name": "_VAR_",
+					"editable": false
+				},
+				{
+					"name": "_SIGMAS_",
+					"editable": false
+				},
+				{
+					"name": "_LIMITN_",
+					"editable": false
+				},
+				{
+					"name": "_LCLI_",
+					"editable": false
+				},
+				{
+					"name": "_SUBI_",
+					"editable": false
+				},
+				{
+					"name": "_MEAN_",
+					"editable": false
+				},
+				{
+					"name": "_UCLI_",
+					"editable": false
+				},
+				{
+					"name": "_STDDEV_",
+					"editable": false
+				},
+				{
+					"name": "_EXLIM_",
+					"headerFilter": true,
+					"editable": false
+				},
+				{
+					"name": "_TESTS_",
+					"headerFilter": true,
+					"editable": false,
+					"validation": {
+						"regex": "(?<=^\\.{1}$)"
+					}
+				},
+				{
+					"name": "test0",
+					"editable": false,
+					"headerFilter": true
+				},
+				{
+					"name": "test1",
+					"editable": false
+				},
+				{
+					"name": "test2",
+					"editable": false
+				},
+				{
+					"name": "test3",
+					"editable": false
+				},
+				{
+					"name": "test4",
+					"editable": false
+				},
+				{
+					"name": "test5",
+					"editable": false
+				},
+				{
+					"name": "test6",
+					"editable": false
+				},
+				{
+					"name": "test7",
+					"editable": false
+				},
+				{
+					"name": "test8",
+					"editable": false
+				},
+				{
+					"name": "subgroup",
+					"editable": false,
+					"headerFilter": true
+				},
+				{
+					"name": "label",
+					"editable": false
+				},
+				{
+					"name": "labelr",
+					"editable": false
+				},
+				{
+					"name": "zone_range",
+					"editable": false
+				},
+				{
+					"name": "_ucli_a_",
+					"editable": false
+				},
+				{
+					"name": "_lcli_a_",
+					"editable": false
+				},
+				{
+					"name": "_ucli_b_",
+					"editable": false
+				},
+				{
+					"name": "_lcli_b_",
+					"editable": false
+				},
+				{
+					"name": "Batch_ID",
+					"editable": false,
+					"headerFilter": true
+				},
+				{
+					"name": "Batch",
+					"editable": false,
+					"headerFilter": true
+				},
+				{
+					"name": "Prod_ID",
+					"editable": false
+				},
+				{
+					"name": "Previous_NCMRCode",
+					"editable": false,
+					"headerFilter": true
+				},
+				{
+					"name": "NCMRCoding",
+					"editable": false,
+					"headerFilter": true
+				},
+				{
+					"name": "NCMRDescription",
+					"editable": false,
+					"headerFilter": true
+				},
+				{
+					"name": "DefectType",
+					"editable": false,
+					"headerFilter": true
+				},
+				{
+					"name": "DefectTypeDescription",
+					"editable": false,
+					"headerFilter": true
+				},
+				{
+					"name": "NCMRCode",
+					"editable": false,
+					"headerFilter": true
+				},
+				{
+					"name": "var_desc",
+					"editable": false
+				},
+				{
+					"name": "Prod_Desc",
+					"editable": false
+				}
+			]
+		},
+		{
+			"casLib": "HENKELCL",
+			"casTable": "HKL_PLOT_COMMENTS",
+			"validateOnLoad": false,
+			"trackChanges": true,
+			"OnSaveMode": 3,
+			"RecoverUnSavedChanges": 1,
+			"GetReasonForChanges": 0,
+			"defaultBehaviour": "editable",
+			"columnDefaults": {
+				"primaryKey": false,
+				"editable": true,
+				"visible": true,
+				"onDownload": true,
+				"onPrint": true,
+				"onClipboard": true,
+				"calculator": true,
+				"validation": {
+					"required": true,
+					"useFormula": null,
+					"default": null,
+					"min": null,
+					"max": null,
+					"minLength": null,
+					"maxLength": null,
+					"in": null,
+					"starts": null,
+					"ends": null,
+					"regex": null
+				},
+				"aggregation": {
+					"topCalc": {
+						"method": null,
+						"precision": null,
+						"label": null
+					},
+					"bottomCalc": {
+						"method": null,
+						"precision": null,
+						"label": null
+					}
+				}
+			},
+			"authorizations": [
+				{
+					"groups": [
+						"SASAdministrators",
+						"HenkelUsers",
+						"group1",
+						"group2",
+						"group3",
+						"group4",
+						"group5",
+						"group6"
+					],
+					"users": [
+						"porjoo",
+						"snlref",
+						"sasdemo",
+						"sbxavh"
+					],
+					"grants": "SPE-U--"
+				}
+			],
+			"onSaveExtServices": [
+				{
+					"saveMoment": 1,
+					"services": [
+						"SPC_UpdtAllTable+PlotComms"
+					]
+				}
+			],
+			"columns": [
+				{
+					"name": "Comment",
+					"headerFilter": true,
+					"validation": {
+						"minLength": 1,
+						"maxLength": 1024
+					}
+				},
+				{
+					"name": "Comment_DateTime",
+					"formula": "(length(Comment) + length(NCMRCode) + length(CommentsCategory))* 0 + getCurrentDateTimeSAS()",
+					"editorSelect": {
+						"from": "column",
+						"values": {
+							"name": [
+								"Comment",
+								"NCMRCode",
+								"CommentsCategory"
+							],
+							"useFormula": true
+						}
+					}
+				},
+				{
+					"name": "Sent2BackEnd",
+					"editable": false,
+					"visible": false
+				},
+				{
+					"name": "Sent_DateTime",
+					"editable": false,
+					"visible": false
+				},
+				{
+					"name": "alltable_all_ruid",
+					"editable": false,
+					"visible": false
+				},
+				{
+					"name": "user_id",
+					"editable": false
+				},
+				{
+					"name": "_TESTS_",
+					"headerFilter": true,
+					"editable": false,
+					"validation": {
+						"regex": "(?<=^\\.{1}$)"
+					}
+				},
+				{
+					"name": "SPC_Comment",
+					"headerFilter": true,
+					"editable": false,
+					"validation": {
+						"regex": "(?<=^\\.{1}$)"
+					}
+				},
+				{
+					"name": "Cust_ID",
+					"editable": false
+				},
+				{
+					"name": "Prod_ID",
+					"editable": false
+				},
+				{
+					"name": "Var_ID",
+					"headerFilter": true,
+					"editable": false
+				},
+				{
+					"name": "Row_UID",
+					"primaryKey": true,
+					"visible": false
+				},
+				{
+					"name": "Batch_ID",
+					"editable": false,
+					"headerFilter": true
+				},
+				{
+					"name": "subgroup",
+					"editable": false
+				},
+				{
+					"name": "Previous_NCMRCode",
+					"editable": false
+				},
+				{
+					"name": "NCMRCoding",
+					"editable": false,
+					"headerFilter": true
+				},
+				{
+					"name": "NCMRDescription",
+					"editable": false,
+					"headerFilter": true
+				},
+				{
+					"name": "DefectType",
+					"editable": false,
+					"headerFilter": true
+				},
+				{
+					"name": "DefectTypeDescription",
+					"editable": false,
+					"headerFilter": true
+				},
+				{
+					"name": "NCMRCode",
+					"editable": true,
+					"headerFilter": true,
+					"editorSelect": {
+						"from": "table",
+						"values": {
+							"casLib": "HENKELCL",
+							"casTable": "HKL_CUSTPRODINFO",
+							"tableColumn": "Previous_NCMRCode",
+							"maxItems": 200,
+							"where": "length(Previous_NCMRCode)<10"
+						},
+						"sortValuesList": "asc",
+						"useOnHeaderFilter": true
+					}
+				},
+				{
+					"name": "CommentsCategory",
+					"headerFilter": true,
+					"editorSelect": {
+						"from": "table",
+						"values": {
+							"casLib": "HENKELCL",
+							"casTable": "HKL_COMMENTSLOOKUPS",
+							"tableColumn": "Comms_Categ",
+							"maxItems": 100
+						},
+						"sortValuesList": "asc",
+						"useOnHeaderFilter": true
+					}
+				},
+				{
+					"name": "Previous_Comments",
+					"headerFilter": true,
+					"editable": false
+				},
+				{
+					"name": "var_desc",
+					"editable": false
+				},
+				{
+					"name": "Prod_Desc",
+					"editable": false
+				},
+				{
+					"name": "Var_Inspec_Point",
+					"headerFilter": true,
+					"editable": false
+				}
+			]
+		}
+	]
+}
