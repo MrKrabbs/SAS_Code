@@ -9,6 +9,8 @@ filename mc url "https://raw.githubusercontent.com/sasjs/core/main/all.sas";
 
 filename sendfrom filesrvc folderpath='/Public/OverTheShoulder_SAS_Studio/My_Programs' filename='printcars.sas';
 filename sendto filesrvc folderpath='/Users/matbai/My Folder/OTS_Test' filename='printcar.sas';
+/* Below we can leverage the sysuserid macro variable instead of hard coding using id */
+/* filename sendto filesrvc folderpath="/Users/&sysuserid/My Folder/OTS_Test" filename='printcar.sas'; */
 
 
 %let x=%sysfunc(fcopy(sendfrom, sendto));
