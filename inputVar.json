@@ -1,0 +1,29 @@
+[
+  {
+    "name": "AGE",
+    "description": "AGE",
+    "role": "input",
+    "type": "decimal",
+    "level": "interval",
+    "format": "10.2",
+    "length": 8
+  },
+  {
+    "name": "BLUEBOOK",
+    "description": "BLUEBOOK",
+    "role": "input",
+    "type": "decimal",
+    "level": "interval",
+    "format": "10.2",
+    "length": 8
+  },
+  {
+    "name": "CAR_AGE",
+    "description": "CAR_AGE",
+    "role": "input",
+    "type": "decimal",
+    "level": "interval",
+    "format": "10.2",
+    "length": 8
+  }
+]

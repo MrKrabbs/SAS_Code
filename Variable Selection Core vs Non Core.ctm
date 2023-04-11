@@ -1,0 +1,414 @@
+<?xml version="1.0" encoding="UTF-8"?><Task revision="1" schemaVersion="7.3">
+    <Registration>
+        <Name>Variable Selection</Name>
+        <Description>The Variable Selection task performs either supervised or unsupervised variable selection by identifying a set of variables that jointly explain the maximum amount of data variance contained in the target variable or in the data table respectively.</Description>
+        <GUID>0abe030c-3761-4da4-954f-1005acbe8470</GUID>
+        <Procedures>VARREDUCE</Procedures>
+        <Links>
+            <Link href="https://documentation.sas.com/?softwareId=STUDIOBASIC&amp;softwareVersion=01&amp;softwareContextId=tasks&amp;requestor=inapp">SAS Studio Task Reference Guide</Link>
+            <Link href=""> </Link>
+            <Link href=""> </Link>
+            <Link href="https://documentation.sas.com/?softwareId=ANVIYA&amp;softwareVersion=01&amp;softwareContextId=proc_varreduce&amp;requestor=inapp">The VARREDUCE Procedure</Link>
+            <Link href=""> </Link>
+            <Link href=""> </Link>
+            <Link href="http://support.sas.com/training/tutorial/viya/index.html">SAS Tutorials</Link>            
+        </Links>
+    </Registration>
+    
+    <Metadata>
+        <DataSources>
+            <DataSource libraryEngineInclude="CAS" name="dataset" where="true"> 
+                <Roles>
+                    <Role exclude="intervalVariables,nominalVariables,freqVariable" maxVars="1" minVars="1" name="target" type="A">Target:</Role>
+ 					<Role exclude="target,coreintervalVariables,freqVariable,nominalVariables,intervalVariables" maxVars="0" minVars="0" name="corenominalVariables" order="true" type="C">Core Nominal inputs:</Role>
+                    <Role exclude="target,corenominalVariables,freqVariable,nominalVariables,intervalVariables" maxVars="0" minVars="0" name="coreintervalVariables" order="true" type="N">Core Interval inputs:</Role>
+  					<Role exclude="target,intervalVariables,freqVariable,coreintervalVariables,corenominalVariables" maxVars="0" minVars="0" name="nominalVariables" order="true" type="C">Non-Core Nominal inputs:</Role>                  
+                    <Role exclude="target,nominalVariables,freqVariable,coreintervalVariables,corenominalVariables" maxVars="0" minVars="0" name="intervalVariables" order="true" type="N">Non-Core Interval inputs:</Role>
+                    <Role exclude="target,intervalVariables,nominalVariables" maxVars="1" minVars="0" name="freqVariable" type="N">Frequency count:</Role>
+                </Roles>
+            </DataSource>
+        </DataSources>
+    
+        <Options>
+            <!-- tab names -->
+            <Option inputType="string" name="dataTab">Data</Option>
+            <Option inputType="string" name="modelTab">Model</Option>
+            <Option inputType="string" name="optionsTab">Options</Option>
+            <Option inputType="string" name="outputTab">Output</Option>
+
+            <!-- DATA tab -->
+            <Option inputType="string" name="dataGroup">Data</Option>
+            <Option inputType="string" name="rolesGroup">Roles</Option>
+            <Option inputType="string" name="targetGroup">Target</Option>
+            <Option defaultValue="1" inputType="radio" name="unsupervised" variable="targetModel">Unsupervised variable selection</Option>
+            <Option inputType="radio" name="supervised" variable="targetModel">Supervised variable selection</Option>
+            <Option inputType="string" name="inputsGroup">Inputs</Option>
+            <Option inputType="string" name="otherRolesGroup">Additional Roles</Option>
+            <Option defaultValue="1" indent="1" inputType="radio" name="intervalTarget" variable="targetType">Use an interval target</Option>
+            <Option indent="1" inputType="radio" name="nominalTarget" variable="targetType">Use a nominal target</Option>
+
+            <!-- MODEL tab -->
+            <Option inputType="string" name="modelEffectsGroup">Model Effects</Option>
+            <Option defaultValue="1" inputType="radio" name="mainModel" variable="radioModelType">Main effects model</Option>
+            <Option inputType="radio" name="mainNwayEffects" variable="radioModelType">Main effects and all n-way interactions</Option> 
+            <Option decimalPlaces="0" defaultValue="2" increment="1" indent="1" inputType="numstepper" invalidMessage="Enter an integer that is greater than 1 and less than 100 for the maximum order of interactions." maxValue="99" minValue="2" missingMessage="Enter an integer that is greater than 1 and less than 100 for the maximum order of interactions." name="nway" promptMessage="Enter an integer that is greater than 1 and less than 100 for the maximum order of interactions." rangeMessage="Enter an integer that is greater than 1 and less than 100 for the maximum order of interactions." required="true" width="75px">N:</Option>
+            <Option inputType="radio" name="advancedModel" variable="radioModelType">Custom model</Option>
+            <Option excludeTools="TWOFACT,THREEFACT,FULLFACT,NFACTPOLY" fixedInterceptVisible="false" indent="1" inputType="mixedeffects" name="modelBuilder" roleClassification="nominalVariables" roleContinuous="intervalVariables" width="100%"/>
+
+            <!-- OPTIONS tab -->
+            <Option inputType="string" name="methodsGroup">Methods</Option>
+            <Option defaultValue="corr" inputType="combobox" name="correlationStats">Select variables based on:</Option>
+            <Option inputType="string" name="correlation" returnValue="corr">Correlations (default)</Option>
+            <Option inputType="string" name="covariance" returnValue="cov">Covariances</Option>
+            <Option inputType="string" name="sscp" returnValue="sscp">Sum of squares and crossproducts</Option>
+            <Option inputType="string" name="selectionGroup">Selection</Option>
+            <Option inputType="string" name="selTechniqueLabel">Variable selection technique:</Option>
+            <Option defaultValue="1" inputType="radio" name="selDiscriminant" variable="radioSelTechnique">Discriminant analysis</Option>
+            <Option inputType="radio" name="selVariance" variable="radioSelTechnique">Variance analysis</Option>
+
+            <Option inputType="string" name="stopCriteriaGroup">Stopping Criteria</Option>
+                <!-- aic/aicc/bic only pertains to supervised variable selection -->
+            <Option inputType="string" name="selCriterionGroup">Model Selection Criterion</Option>
+            <Option defaultValue="0" inputType="checkbox" name="aic">Akaike's information criterion</Option>
+            <Option defaultValue="0" inputType="checkbox" name="aicc">Corrected Akaike's information criterion</Option>
+            <Option defaultValue="0" inputType="checkbox" name="bic">Schwarz Bayesian information criterion</Option>
+            <Option inputType="string" name="varExplainedLabel">Proportion of total variance to be explained:</Option>
+            <Option defaultValue="1" indent="1" inputType="radio" name="varExplainedDefault" variable="radioVarExplained">Use 0.9 (default)</Option>
+            <Option indent="1" inputType="radio" name="varExplainedCustom" variable="radioVarExplained">Use custom value</Option>
+            <Option defaultValue="0.9" indent="2" inputType="numbertext" invalidMessage="Enter a number greater than 0 and less than 1." maxValue="0.9999999999999999" minValue="0.00000000000000000000000001" missingMessage="Enter a number greater than 0 and less than 1." name="varExplained" promptMessage="Enter a number greater than 0 and less than 1." rangeMessage="Enter a number greater than 0 and less than 1." required="true" width="6em">Proportion of total variance:</Option>
+            <Option inputType="string" name="maxEffectsLabel">Maximum number of selected effects:</Option>
+            <Option defaultValue="1" indent="1" inputType="radio" name="maxEffectsDefault" variable="radioMaxEffects">Use 200 (default)</Option>
+            <Option indent="1" inputType="radio" name="maxEffectsCustom" variable="radioMaxEffects">Use custom value</Option>
+            <Option decimalPlaces="0" defaultValue="200" increment="1" indent="2" inputType="numstepper" invalidMessage="Enter an integer greater than or equal to 1 and less than or equal to 9999." maxValue="9999" minValue="1" missingMessage="Enter an integer greater than or equal to 1 and less than or equal to 9999." name="maxEffects" promptMessage="Enter an integer greater than or equal to 1 and less than or equal to 9999." rangeMessage="Enter an integer greater than or equal to 1 and less than or equal to 9999." required="true" width="5em">Number of selected effects:</Option>
+            <Option defaultValue="0" inputType="checkbox" name="varIncrementChkbox">Specify minimum increment of explained variance</Option>
+            <Option defaultValue="0.001" indent="1" inputType="numbertext" invalidMessage="Enter a number greater than 0 and less than 1." maxValue="0.9999999999999999" minValue="0.00000000000000000000000001" missingMessage="Enter a number greater than 0 and less than 1." name="varIncrement" promptMessage="Enter a number greater than 0 and less than 1." rangeMessage="Enter a number greater than 0 and less than 1." required="true" width="6em">Increment of explained variance:</Option>
+            <Option defaultValue="0" inputType="checkbox" name="maxItersChkbox">Specify maximum number of iterations</Option>
+            <Option decimalPlaces="0" defaultValue="200" increment="1" indent="1" inputType="numstepper" invalidMessage="Enter an integer greater than or equal to 1 and less than or equal to 9999." maxValue="9999" minValue="1" missingMessage="Enter an integer greater than or equal to 1 and less than or equal to 9999." name="maxIters" promptMessage="Enter an integer greater than or equal to 1 and less than or equal to 9999." rangeMessage="Enter an integer greater than or equal to 1 and less than or equal to 9999." required="true" width="5em">Number of iterations:</Option>
+
+            <Option inputType="string" name="plotsGroup">Plots</Option>
+            <Option inputType="checkbox" name="iterPlot">Iteration plot</Option> 
+            <Option inputType="string" name="iterPlotTitle">Variance Explained by Iteration</Option>
+            <Option inputType="string" name="iterPlotYaxisLabel">Variance Explained</Option>
+
+            <!-- OUTPUT tab -->
+            <!-- ODS output can only be saved to SAS libref. -->
+            <Option inputType="string" name="outputGroup">Output Data</Option>
+            <Option inputType="string" name="odsOutputLibrefNote">The following data sets must use a SAS libref.</Option>
+            <Option defaultValue="0" inputType="checkbox" name="outputSelSummary">Save selection summary</Option>
+            <Option defaultValue="work.summary" indent="1" inputType="outputdata" libraryEngineInclude="v9" name="outputSelSummaryName" required="true" unique="true">Specify a SAS data set:</Option>
+            <Option defaultValue="0" inputType="checkbox" name="outputSelEffects">Save selected variables</Option>
+            <Option defaultValue="work.effects" indent="1" inputType="outputdata" libraryEngineInclude="v9" name="outputSelEffectsName" required="true" unique="true">Specify a SAS data set:</Option>
+
+            <Option inputType="string" name="casOutputLibrefNote">The following table must use a CAS engine libref.</Option>
+            <Option inputType="checkbox" name="outputCP">Create matrix data</Option>
+            <Option indent="1" inputType="outputdata" libraryEngineInclude="cas" name="outputCPName" required="true" unique="true">Specify a CAS table:</Option>
+            <Option indent="1" inputType="checkbox" name="matrixListFormat">Generate matrix in the list-of-list (LIL) format</Option>
+            <Option indent="2" inputType="checkbox" name="useEpsilon">Exclude entries with absolute value less than the tolerance</Option>
+			<Option defaultValue="0" indent="3" inputType="numbertext" invalidMessage="Enter a number greater than or equal to 0." minValue="0" missingMessage="Enter a number greater than or equal to 0." name="epsilon" promptMessage="Enter a number greater than or equal to 0." rangeMessage="Enter a number greater than or equal to 0." width="6em">Tolerance value:</Option>
+         <Option inputType="string" name="grplabel">Group</Option>	        </Options>
+    </Metadata>
+
+    <UI>
+        <Container option="dataTab">
+                       <DataItem data="dataset"/>
+                    <RoleItem role="target"/>
+
+                <Group open="true" option="inputsGroup">
+                    <RoleItem role="corenominalVariables"/>
+					<RoleItem role="coreintervalVariables"/>
+					<RoleItem role="nominalVariables"/>
+                    <RoleItem role="intervalVariables"/>
+                </Group>
+            
+   <!--         <Group option="otherRolesGroup">
+                <RoleItem role="freqVariable"/>
+            </Group> -->
+        </Container>
+    
+    <!--    <Container option="modelTab">
+            <Group open="true" option="modelEffectsGroup">
+                <OptionItem option="mainModel"/>
+                <OptionItem option="mainNwayEffects"/>
+                <OptionItem option="nway"/>
+                <OptionItem option="advancedModel"/>
+                <OptionItem option="modelBuilder"/>
+            </Group>
+        </Container>
+
+        <Container option="optionsTab">
+            <Group open="true" option="methodsGroup">
+                <OptionChoice option="correlationStats">
+                    <OptionItem option="correlation"/>
+                    <OptionItem option="covariance"/>
+                    <OptionItem option="sscp"/>
+                </OptionChoice>
+                <OptionItem option="selTechniqueLabel"/>
+                <OptionItem option="selDiscriminant"/>
+                <OptionItem option="selVariance"/>
+            </Group>
+            <Group open="true" option="selectionGroup">
+                <Group open="true" option="selCriterionGroup">
+                    <OptionItem option="aic"/>
+                    <OptionItem option="aicc"/>
+                    <OptionItem option="bic"/>
+                </Group>
+                <Group open="true" option="stopCriteriaGroup">
+                    <OptionItem option="varExplainedLabel"/>
+                    <OptionItem option="varExplainedDefault"/>
+                    <OptionItem option="varExplainedCustom"/>
+                    <OptionItem option="varExplained"/>
+                    <OptionChoice option="maxEffectsLabel"/>
+                    <OptionItem option="maxEffectsDefault"/>
+                    <OptionItem option="maxEffectsCustom"/>
+                    <OptionItem option="maxEffects"/>
+                    <OptionItem option="varIncrementChkbox"/>
+                    <OptionItem option="varIncrement"/>
+                    <OptionItem option="maxItersChkbox"/>
+                    <OptionItem option="maxIters"/>
+                </Group>
+            </Group>
+            <Group open="true" option="plotsGroup">
+                <OptionItem option="iterPlot"/>
+            </Group>
+        </Container>
+        
+        <Container option="outputTab">
+            <Group open="true" option="outputGroup">
+                <OptionItem option="odsOutputLibrefNote"/>
+                <OptionItem option="outputSelSummary"/>
+                <OptionItem option="outputSelSummaryName"/>
+                <OptionItem option="outputSelEffects"/>
+                <OptionItem option="outputSelEffectsName"/>
+                <OptionItem option="casOutputLibrefNote"/>
+                <OptionItem option="outputCP"/>
+                <OptionItem option="outputCPName"/>
+                <OptionItem option="matrixListFormat"/>
+                <OptionItem option="useEpsilon"/>
+                <OptionItem option="epsilon"/>
+            </Group>
+        </Container> -->
+    </UI>
+
+    <Dependencies>
+   <!--     <Dependency condition="($targetModel=='supervised')">
+            <Target action="show" conditionResult="true" option="targetGroup"/>
+            <Target action="hide" conditionResult="false" option="targetGroup"/>
+        </Dependency>
+        <Dependency condition="($target &amp;&amp; $target.size()&gt;0 &amp;&amp; $target[0].get('type')=='Numeric')">
+            <Target action="show" conditionResult="true" option="targetType"/>
+            <Target action="hide" conditionResult="false" option="targetType"/>
+        </Dependency>
+        <Dependency condition="($target &amp;&amp; $target.size()&gt;0 &amp;&amp; (($target[0].get('type')=='Numeric' &amp;&amp; $targetType=='nominalTarget') || ($target[0].get('type')=='Char')))">
+            <Target action="show" conditionResult="true" option="selTechniqueLabel"/>
+            <Target action="hide" conditionResult="false" option="selTechniqueLabel"/>
+            <Target action="show" conditionResult="true" option="radioSelTechnique"/>
+            <Target action="hide" conditionResult="false" option="radioSelTechnique"/>
+        </Dependency>
+        <Dependency condition="($target &amp;&amp; $target.size()&gt;0)">
+            <Target action="show" conditionResult="true" option="selCriterionGroup"/>
+            <Target action="hide" conditionResult="false" option="selCriterionGroup"/>
+        </Dependency>
+        <Dependency condition="($MathTool.add($intervalVariables.size(),$nominalVariables.size()) &gt; 1)">
+            <Target action="enable" conditionResult="true" option="mainNwayEffects"/>
+            <Target action="disable" conditionResult="false" option="mainNwayEffects"/>
+        </Dependency>
+        <Dependency condition="($radioModelType == 'mainNwayEffects')">
+            <Target action="show" conditionResult="true" option="nway"/>
+            <Target action="hide" conditionResult="false" option="nway"/>
+        </Dependency>
+        <Dependency condition="($radioModelType=='advancedModel')">
+            <Target action="show" conditionResult="true" option="modelBuilder"/>
+            <Target action="hide" conditionResult="false" option="modelBuilder"/>
+        </Dependency>
+        <Dependency condition="($maxItersChkbox=='1')">
+            <Target action="show" conditionResult="true" option="maxIters"/>
+            <Target action="hide" conditionResult="false" option="maxIters"/>
+        </Dependency>
+        <Dependency condition="($radioMaxEffects=='maxEffectsCustom')">
+            <Target action="show" conditionResult="true" option="maxEffects"/>
+            <Target action="hide" conditionResult="false" option="maxEffects"/>
+        </Dependency>
+        <Dependency condition="($radioVarExplained=='varExplainedCustom')">
+            <Target action="show" conditionResult="true" option="varExplained"/>
+            <Target action="hide" conditionResult="false" option="varExplained"/>
+        </Dependency>
+        <Dependency condition="($varIncrementChkbox=='1')">
+            <Target action="show" conditionResult="true" option="varIncrement"/>
+            <Target action="hide" conditionResult="false" option="varIncrement"/>
+        </Dependency>
+        <Dependency condition="($outputSelSummary=='1')">
+            <Target action="enable" conditionResult="true" option="outputSelSummaryName"/>
+            <Target action="disable" conditionResult="false" option="outputSelSummaryName"/>
+        </Dependency>
+        <Dependency condition="($outputSelEffects=='1')">
+            <Target action="enable" conditionResult="true" option="outputSelEffectsName"/>
+            <Target action="disable" conditionResult="false" option="outputSelEffectsName"/>
+        </Dependency>
+        <Dependency condition="($outputCP=='1')">
+            <Target action="enable" conditionResult="true" option="outputCPName"/>
+            <Target action="disable" conditionResult="false" option="outputCPName"/>
+            <Target action="enable" conditionResult="true" option="matrixListFormat"/>
+            <Target action="disable" conditionResult="false" option="matrixListFormat"/>
+        </Dependency>
+        <Dependency condition="($outputCP=='1' &amp;&amp; $matrixListFormat=='1')">
+            <Target action="show" conditionResult="true" option="useEpsilon"/>
+            <Target action="hide" conditionResult="false" option="useEpsilon"/>
+        </Dependency>
+        <Dependency condition="($outputCP=='1' &amp;&amp; $matrixListFormat=='1' &amp;&amp; $useEpsilon=='1')">
+            <Target action="show" conditionResult="true" option="epsilon"/>
+            <Target action="hide" conditionResult="false" option="epsilon"/>
+        </Dependency> -->
+    </Dependencies>
+
+    <Requirements> 
+        <Requirement condition="($coreintervalVariables.size()&gt;0 || $corenominalVariables.size()&gt;0)">
+            <Message>Select at least one core interval or nominal input.</Message>
+        </Requirement>
+        <Requirement condition="($intervalVariables.size()&gt;0 || $nominalVariables.size()&gt;0)">
+            <Message>Select at least one non-core interval or nominal input.</Message>
+        </Requirement>
+ <!--       <Requirement condition="($coreintervalVariables.size()&gt;0 || $corenominalVariables.size()&gt;0)">
+            <Message>Select at least one interval or nominal non-core variable.</Message>
+        </Requirement>
+        <Requirement condition="(!(($intervalVariables.size()&gt;0 || $nominalVariables.size()&gt;0) &amp;&amp;             $radioModelType=='advancedModel' &amp;&amp; $modelBuilder.mixedEffectsModels.get(0).modelEffects.size()==0))">
+            <Message>Add one or more effects to the candidate model on the MODEL tab.</Message>
+        </Requirement>   --> 
+    </Requirements>
+    
+    <CodeTemplate>
+        <![CDATA[
+ 
+%LET CORE_VARS =#if($corenominalVariables.size()>0 ) #foreach($item in $corenominalVariables) $item #end#end
+#if($coreintervalVariables.size()>0 ) #foreach($item in $coreintervalVariables) $item #end#end;
+
+%LET NON_CORE_VARS =#if($nominalVariables.size()>0 ) #foreach($item in $nominalVariables) $item #end#end
+#if($intervalVariables.size()>0 ) #foreach($item in $intervalVariables) $item #end#end;
+
+ 
+       
+proc varreduce data=$dataset;
+#if($corenominalVariables.size()>0 ) class  #foreach($item in $corenominalVariables) $item #end#end;
+reduce supervised #foreach($item in $target) $item #end = #if($corenominalVariables.size()>0 ) #foreach($item in $corenominalVariables) $item #end#end
+#if($coreintervalVariables.size()>0 ) #foreach($item in $coreintervalVariables) $item #end#end / aic maxeffects=100;
+
+	ods output selectionsummary=Work._VarSelection_summary_;
+	ods output SelectedEffects=work.Effects;
+run;
+
+proc sql;
+select variable into :for_order_core separated by ' ' from WORK.EFFECTS;
+quit;
+
+DATA work.core_out;
+RETAIN &for_order_core.;
+ 
+SET $dataset(OBS=1);
+
+LENGTH END_VAR_IMPORTANCE_CORE_C $1;
+LENGTH END_VAR_IMPORTANCE_CORE_N 8;
+
+END_VAR_IMPORTANCE_CORE_C='Y';
+END_VAR_IMPORTANCE_CORE_N= 1;
+
+KEEP &CORE_VARS ;
+
+RUN;
+
+data work.out_iter (keep=Iteration VarExp Base Increment Parameter);
+	set Work._VarSelection_summary_;
+	Increment=dif(VarExp);
+
+	if Increment=. then
+		Increment=0;
+	Base=VarExp - Increment;
+run;
+
+proc transpose data=work.out_iter out=work.out_iter_trans;
+	by Iteration VarExp Parameter;
+run;
+
+proc sort data=work.out_iter_trans;
+	label _NAME_='Group';
+	by _NAME_;
+run;
+
+proc sgplot data=work.out_iter_trans;
+	title 'Variance Explained for Core Variables by Iteration';
+	yaxis label='Variance Explained';
+	vbar Iteration / response=COL1 group=_NAME_;
+run;
+
+proc delete data=Work._VarSelection_summary_;
+run;
+
+proc delete data=work.out_iter work.out_iter_trans;
+run;
+
+proc varreduce data=$dataset;
+#if($nominalVariables.size()>0 ) class  #foreach($item in $nominalVariables) $item #end;#end
+reduce supervised #foreach($item in $target) $item #end = #if($nominalVariables.size()>0 ) #foreach($item in $nominalVariables) $item #end#end
+#if($intervalVariables.size()>0 ) #foreach($item in $intervalVariables) $item #end#end / aic maxeffects=100;
+
+	ods output selectionsummary=Work._VarSelection_summary_;
+	ods output SelectedEffects=work.Effects;
+run;
+
+proc sql;
+select variable into :for_order_noncore separated by ' ' from WORK.EFFECTS;
+quit;
+
+DATA work.non_core_out;
+RETAIN &for_order_noncore.;
+ 
+SET $dataset(OBS=1);
+
+LENGTH END_VAR_IMPORTANCE_NON_CORE_C $1;
+LENGTH END_VAR_IMPORTANCE_NON_CORE_N 8;
+
+END_VAR_IMPORTANCE_NON_CORE_C='Y';
+END_VAR_IMPORTANCE_NON_CORE_N= 1;
+
+KEEP &NON_CORE_VARS;
+
+RUN;
+
+data work.out_iter (keep=Iteration VarExp Base Increment Parameter);
+	set Work._VarSelection_summary_;
+	Increment=dif(VarExp);
+
+	if Increment=. then
+		Increment=0;
+	Base=VarExp - Increment;
+run;
+
+proc transpose data=work.out_iter out=work.out_iter_trans;
+	by Iteration VarExp Parameter;
+run;
+
+proc sort data=work.out_iter_trans;
+	label _NAME_='Group';
+	by _NAME_;
+run;
+
+proc sgplot data=work.out_iter_trans;
+	title 'Variance Explained for Non-Core variables by Iteration';
+	yaxis label='Variance Explained';
+	vbar Iteration / response=COL1 group=_NAME_;
+run;
+
+proc delete data=Work._VarSelection_summary_;
+run;
+
+proc delete data=work.out_iter work.out_iter_trans;
+run;
+
+data DATAFLDR.SEND2_MODEL;
+set WORK.CORE_OUT WORK.NON_CORE_OUT;
+
+RUN;
+
+
+
+]]>
+    </CodeTemplate>
+</Task>

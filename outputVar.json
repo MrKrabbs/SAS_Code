@@ -1,0 +1,29 @@
+[
+  {
+    "name": "AGE_U_L",
+    "description": "AGE_U_L",
+    "role": "output",
+    "type": "string",
+    "level": "nominal",
+    "format": "",
+    "length": 50
+  },
+    {
+    "name": "BLUEBOOK_U_L",
+    "description": "BLUEBOOK_U_L",
+    "role": "output",
+    "type": "string",
+    "level": "nominal",
+    "format": "",
+    "length": 50
+  },
+    {
+    "name": "CAR_AGE_U_L",
+    "description": "CAR_AGE_U_L",
+    "role": "output",
+    "type": "string",
+    "level": "nominal",
+    "format": "",
+    "length": 50
+  }
+]

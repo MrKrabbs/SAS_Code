@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="UTF-8"?><Task revision="1" schemaVersion="7.3">
+    <Registration>
+        <Name>Bins and Transformations for Interval Variables</Name>
+        <Description>Bins and Transformations for Interval Variables</Description>
+        <GUID>b1d3737z-3552-4b28-9942-7296555686d1</GUID>
+        <Procedures/>
+        <Links>
+   <!--         <Link href="https://documentation.sas.com/?softwareId=STUDIOBASIC&amp;softwareVersion=01&amp;softwareContextId=tasks&amp;requestor=inapp">SAS Studio Task Reference Guide</Link>
+            <Link href="https://documentation.sas.com/?softwareId=PGMVIYA&amp;softwareVersion=01&amp;softwareContextId=data_step_cas&amp;requestor=inapp">The DATA Step</Link>
+            <Link href="http://support.sas.com/training/tutorial/viya/index.html">SAS Tutorials</Link> -->
+        </Links>
+    </Registration>
+    <Metadata>
+        <DataSources>
+            <DataSource libraryEngineInclude="CAS" name="dataset" defaultValue="">
+ 				<Roles>
+					<Role  maxVars="0" minVars="1" name="analysisVariables" order="true" type="N">Select Interval Variables to Apply Transformations:</Role>
+					<Role  maxVars="1" minVars="1" name="targetvariable" order="true" type="N">Select Target Variable:</Role>
+ 				</Roles>
+            </DataSource>
+            <DataSource  libraryEngineInclude="CAS" name="model1" defaultValue="">  
+				<Roles>
+					<Role  maxVars="0" minVars="1" name="willnotbeused" order="true" type="N">Interval  inputs to bin:</Role>
+ 				</Roles>      
+            </DataSource>
+            <DataSource  libraryEngineInclude="CAS,V9" name="model2" defaultValue="SASHELP.CARS">        
+            </DataSource>
+            <DataSource  libraryEngineInclude="CAS,V9" name="model3" defaultValue="SASHELP.CARS">        
+            </DataSource>
+            <DataSource libraryEngineInclude="CAS,V9" name="model4" defaultValue="SASHELP.CARS">        
+            </DataSource>
+        </DataSources>
+        
+        <Options>
+            <Option inputType="string" name="methodsGroup">Methods</Option>
+            <Option defaultValue="bucketChoice" inputType="combobox" name="binMethod">Method:</Option>
+            <Option inputType="string" name="bucketChoice">Bucket binning (default)</Option>
+          <!--  <Option inputType="string" name="winsorChoice">Winsorized binning</Option> -->
+            <Option inputType="string" name="quantileChoice">Quantile binning </Option>
+			<Option inputType="string" name="optionsTab">Options</Option>
+<!-- nBins: 2 <= nBins <= 1000 -->          
+            <Option decimalPlaces="0" defaultValue="20" inputType="numbertext" invalidMessage="Enter a integer number greater than 1 and less than or equal to 1000 for the number of bins" maxValue="1000" minValue="2" missingMessage="Enter a integer number greater than 1 and less than or equal to 1000 for the number of bins" name="nBins" promptMessage="Enter a integer number greater than 1 and less than or equal to 1000 for the number of bins" rangeMessage="Enter a integer number greater than 1 and less than or equal to 1000 for the number of bins" required="true">Number of bins:</Option>
+<!-- winsorRate: 0 < winsorRate < 0.5-->
+            <Option decimalPlaces="1,15" defaultValue="0.05" indent="1" inputType="numbertext" invalidMessage="Enter a number greater than zero and less than 0.5 for the winsor rate" maxValue="0.49999999999" minValue="0.00000000001" missingMessage="Enter a number greater than zero and less than 0.5 for the winsor rate" name="winsorRate" promptMessage="Enter a number greater than zero and less than 0.5 for the winsor rate" rangeMessage="Enter a number greater than zero and less than 0.5 for the winsor rate" required="true">Winsor rate:</Option> 
+            <Option inputType="string" name="dataTab">Data</Option> 
+            <Option inputType="string" name="dataGroup">Data</Option>
+            <Option inputType="string" name="scoringGroup">Output Data</Option>
+            <Option inputType="string" name="codeGroup">Scoring Type</Option> 
+            <Option defaultValue="1" inputType="radio" name="sasDataset" variable="scoreType">Use scoring code</Option>
+            <Option indent="1" inputType="string" name="astoreMsg">Specify a CAS table:</Option>
+            <Option inputType="radio" name="astoreData" variable="scoreType">Use saved scoring model</Option>
+            
+            
+            <Option inputType="string" name="outputLibrefNote">The following table must use a CAS engine libref.</Option>
+			<Option inputType="string" name="selectTableUsedInModel">Select table CASUSER.D_TEMP_......</Option>
+			<Option inputType="string" name="selectModelsToJoin">Select up to four model(s) to add their predicted values.</Option>
+            <Option inputType="outputdata" libraryEngineInclude="CAS" name="outScoredDSName" required="true" unique="true">Specify a CAS table:</Option>
+			<Option inputType="select" multiple="true"  allowAllValues="false" required="true" name="selectFunctions">Select Transformations:</Option>
+			<Option inputType="string" name="SCALESHIFT">SCALESHIFT</Option>	
+			<Option inputType="string" name="INVSQUARESHIFT">INVSQUARESHIFT</Option>	
+			<Option inputType="string" name="RANGE">RANGE</Option>					
+			<Option inputType="string" name="ABS">ABS</Option>	
+			<Option inputType="string" name="CENTER">CENTER</Option>	
+			<Option inputType="string" name="SQRT">SQRT</Option>	
+			<Option inputType="string" name="LOG">LOG</Option>	
+			<Option inputType="string" name="POWER">POWER</Option>	
+			<Option inputType="string" name="INVERSE">INVERSE</Option>
+			<Option inputType="string" name="BOXCOX">BOXCOX</Option>	
+			<Option inputType="string" name="STANDARDIZE">STANDARDIZE</Option>
+
+            <Option defaultExtension="sas" defaultName="score" indent="1" inputType="sasserverpath" name="scoringCodeFileName">Specify the SAS scoring code file.</Option>
+        </Options>
+    </Metadata>
+
+    <UI>
+        <Container option="dataTab">
+            <Group open="true" option="dataGroup">
+ 				<OptionItem option="selectTableUsedInModel"/>
+                <DataItem data="dataset"/> 
+				<RoleItem role="analysisVariables"/>
+				<RoleItem role="targetvariable"/>
+				<OptionChoice option="selectFunctions">
+					<OptionItem option="SCALESHIFT"/>
+					<OptionItem option="INVSQUARESHIFT"/>
+					<OptionItem option="RANGE"/>
+					<OptionItem option="ABS"/>
+					<OptionItem option="CENTER"/>
+					<OptionItem option="SQRT"/>
+					<OptionItem option="LOG"/>
+					<OptionItem option="POWER"/>
+					<OptionItem option="INVERSE"/>
+					<OptionItem option="BOXCOX"/>
+					<OptionItem option="STANDARDIZE"/>
+				</OptionChoice>
+ <!--  <OptionItem option="selectModelsToJoin"/>
+				<DataItem data="model1"/> 
+				<DataItem data="model2"/> 
+				<DataItem data="model3"/> 
+				<DataItem data="model4"/>   -->       
+            </Group>
+   <!--         <Group open="true" option="codeGroup">
+                <OptionItem option="sasDataset"/>
+                <OptionItem option="scoringCodeFileName"/>
+                <OptionItem option="astoreData"/>
+                <OptionItem option="astoreMsg"/>
+                <DataItem data="astoreName"/>                
+            </Group> 
+            <Group open="true" option="scoringGroup">
+                <OptionItem option="outputLibrefNote"/>
+                <OptionItem option="outScoredDSName"/>
+
+            </Group> -->
+        </Container>
+        <Container option="optionsTab"> 
+            <Group open="true" option="methodsGroup">
+                <OptionItem option="nBins"/>
+                <OptionChoice option="binMethod">
+                    <OptionItem option="bucketChoice"/>
+                    <OptionItem option="quantileChoice"/>
+            <!--        <OptionItem option="winsorChoice"/> -->
+                </OptionChoice>
+      <!--          <OptionItem option="winsorRate"/> -->
+<!-- not supported yet
+            <OptionItem option="woe"/>
+            <RoleItem role="targetVariable"/>
+            <OptionItem option="responseOrderLabel"/>
+            <OptionItem option="ascResponseOrderChoice"/>
+            <OptionItem option="descResponseOrderChoice"/>
+
+            <OptionItem option="useWoeAdjust"/>
+            <OptionItem option="woeAdjust"/>
+-->
+            </Group>
+
+        </Container>
+    </UI>
+    
+    <Dependencies>
+ <!--     <Dependency condition="$scoreType == 'sasDataset'">
+         <Target action="show" conditionResult="true" option="scoringCodeFileName"/>
+         <Target action="hide" conditionResult="false" option="scoringCodeFileName"/>
+         <Target action="hide" conditionResult="true" option="astoreName"/>
+         <Target action="show" conditionResult="false" option="astoreName"/>  
+         <Target action="hide" conditionResult="true" option="astoreMsg"/>
+         <Target action="show" conditionResult="false" option="astoreMsg"/>          
+      </Dependency> 
+        <Dependency condition="($binMethod=='winsorChoice')">
+            <Target action="show" conditionResult="true" option="winsorRate"/>
+            <Target action="hide" conditionResult="false" option="winsorRate"/>
+        </Dependency>  --> 
+    </Dependencies>
+    
+    <CodeTemplate>
+        <![CDATA[
+ods noproctitle;
+
+/********************                 Interval Transformations ****************************/
+/********************        In this first step we create 11 TRANSFORMATIONS FOR EACH INTERVAL VARIABLE USING THESE 11 METHODS  *********/
+/********************        SCALESHIFT INVSQUARESHIFT RANGE ABS CENTER SQRT LOG POWER INVERSER BOXCOX STANDARDIZE  *********************/
+
+ods output TransInfo=WORK.TransInfo;
+ods output VarTransInfo=Work.VarTransInfo;
+
+
+#if ( $analysisVariables.size() > 0 ) 
+proc cas; 
+  dataPreprocess.transform /                      
+      table={caslib="$dataset.getLibrary()",name="$dataset.getTable()"}
+/* 	  casOutVarTransInfo={caslib="CASUSER",name="TransInfo",replace=true} */
+	  rank={intervalStat="CLASSICALSKEW" }
+/* rank={intervalStat="PEARSON" } */
+      requestPackages={
+
+
+#if ($selectFunctions && $selectFunctions.size() > 0)
+#foreach($item in $selectFunctions) 
+							{
+							inputs={  #foreach($selectedIntervals in $analysisVariables) "$selectedIntervals" #if( $foreach.hasNext ), #end #end}
+							targets={"PurePremium"}
+							function={type = "$item"}
+							} #if( $foreach.hasNext ), #end
+
+
+
+#end
+#end
+
+
+                     }
+
+
+casout={name="CONT_TRANSFORMS",replace=true} copyallvars=true  /*copyVars={"uniqueRecordID"} */
+evaluationStats=True
+/* code={comment=True} */
+;
+    run;
+
+quit; 
+
+ods WORK.TransInfo close;
+ods Work.VarTransInfo close;
+run;
+
+/***********   Goal for steps below are                                                          ******/
+/***********   Keep only the best transform (using skew metric) or the Standardize transforms and then drop the rest ******/
+/***********   Make the variable names more user friendly by renaming and adding label                                *****/
+proc sql;
+create table preSelectTransVars as
+select A.*, B.Func,B.FunctArgs from WORK.VARTRANSINFO A left join WORK.TRANSINFO B on
+A.Transformation=B.ActualName
+order by BestTransRank, variable;
+/* order by BestTransRank; */
+/* ORDER BY variable; */
+quit;
+
+data preSelectTransVars_B;
+set preSelectTransVars;
+by BestTransRank variable;
+UseThis='N';
+if (first.variable and  BestTransRank = 1) then UseThis='Y';
+
+if func = 'Inverse-Square-Shift' then func ='InSqShf';
+if func = 'Scale-Shift' then func = 'SclShft';
+if func = 'Standardize' then func = 'Stndrdz';
+
+run;
+
+Proc SQL;
+select distinct ResultVar into: DropThese separated by ' ' from preSelectTransVars_B where UseThis='N';
+quit;
+
+proc sql;
+select cats(Transformation,'_',Variable,'=',tranwrd(Func,'-','_'),'_',Variable) into:RenameThese separated by ' ' from preSelectTransVars_B
+where UseThis='Y';
+select cat(Trim(Transformation),'_',trim(Variable),'=','"',Trim(tranwrd(Func,'-','_')),' ',trim(Variable),'"') into:LabelThese separated by ' ' from preSelectTransVars_B
+where UseThis='Y';
+select quote(cats(tranwrd(Func, '-', '_'), '_',Variable)) into:TranfrmVars separated by ',' from preSelectTransVars_B where UseThis='Y';
+select quote(trim(Variable)) into:OrigIntervalVars separated by ',' from preSelectTransVars_B where UseThis='Y';
+quit;
+
+%let OrigAndTransfrmVars= &TranfrmVars , &OrigIntervalVars;
+
+DATA CASUSER.TRANS_INTERVAL_VARS;
+SET CASUSER.CONT_TRANSFORMS(drop=&DropThese.);
+
+LABEL
+&LabelThese.;
+
+RENAME
+&RenameThese.;
+
+run;
+
+/****************                            Below we keep only the variables we need by altering tables and specifying variables to keep       ******/
+proc cas;
+ /* session CASAUTO; */
+table.alterTable /
+caslib="CASUSER"
+name="TRANS_INTERVAL_VARS",
+keep={"uniqueRecordID",&OrigAndTransfrmVars.}
+;RUN;
+QUIT;
+
+/***************************       End of Transformations     *********************************************************/
+/*                                                                                                                     */
+/************** Below Bins our continuous\interval variables for two reasons: Easier to visualize model and potentially put binned version of variable in model ****/
+PROC CONTENTS DATA=CASUSER.TRANS_INTERVAL_VARS OUT=GetVarNames(KEEP=NAME) NODETAILS NOPRINT;RUN;
+
+
+/*************   Below specifys which variables we want to bin. These will be our transformation variables and their original variable counterpart     *******/    
+PROC SQL ;
+SELECT NAME INTO:bin_vars1- FROM GetVarNames WHERE NAME IN (&OrigAndTransfrmVars.);
+;quit;
+
+
+%LET NBR_BIN_VARS=&SQLOBS;
+
+%MACRO BIN_MY_VARS;
+
+%DO I = 1 %TO &sqlobs;
+
+PROC CAS;dataPreprocess.binning / table={caslib="CASUSER",name="TRANS_INTERVAL_VARS"} nbins={$nBins} inputs={"&&bin_vars&I.."} 
+
+#if ($binMethod == "quantileChoice") method="quantile"
+#elseif ($binMethod == "bucketChoice") method="bucket"
+#end
+
+
+#if( $freqVariable.size() > 0 )
+    freq= #foreach( $item in $freqVariable ) "$item" #end;
+#end
+
+casout={caslib="CASUSER", name="src_w_bin",replace=true} casoutBinDetails={name="bin_info_out",replace=true} copyallvars=true;run;quit;
+
+
+
+data CASUSER.var_&&bin_vars&I.. / single=yes ;
+
+set CASUSER.bin_info_out;
+by _BinId_;
+retain Real_Bin;
+
+Length &&bin_vars&I.._U_L $50;
+
+
+if _NinBin_ > 0 then 
+do;
+	Real_bin= sum(0, 1, Real_Bin);
+	&&bin_vars&I.._U_L=cats(put(Real_bin,z2.), '_', _binlowerbnd_, '  -  ', _binupperbnd_);
+	output;
+end;
+
+label &&bin_vars&I.._U_L = "&&bin_vars&I.._Binned" ;
+
+run;
+
+
+
+proc fedsql sessref=mySession;
+   create table CASUSER.temp_bin_out&I.
+   {options replication=0 replace=true} as
+   select A.uniqueRecordID, B.&&bin_vars&I.._U_L 
+   from CASUSER.src_w_bin A INNER JOIN CASUSER.var_&&bin_vars&I.. B
+   ON A.BIN_&&bin_vars&I.. =B._BinID_;
+quit ;
+
+	proc casutil;
+		droptable incaslib="CASUSER" casdata="src_w_bin" quiet;
+		droptable incaslib="CASUSER" casdata="bin_info_out" quiet;
+		droptable incaslib="CASUSER" casdata="G_CONT_TRANSFORMS_PLUS_BINS" quiet;
+	run;QUIT;
+
+%end;
+
+
+data CASUSER.G_CONT_TRANSFORMS_PLUS_BINS(promote=yes);
+merge CASUSER.TRANS_INTERVAL_VARS 
+
+%Do J=1 %TO &NBR_BIN_VARS.;
+ CASUSER.temp_bin_out&J. 
+%End;
+;
+
+by uniqueRecordID;
+run;
+
+	proc casutil;
+%Do M=1 %TO &NBR_BIN_VARS.;
+ 	droptable incaslib="CASUSER" casdata="temp_bin_out&M." quiet; 
+%End;
+	run;QUIT;
+
+		proc casutil;
+			droptable incaslib="CASUSER" casdata="BIN_INFO" quiet;
+		run;QUIT;
+
+	DATA CASUSER.BIN_INFO(PROMOTE=YES);
+	LENGTH _Variable_ BIN_VALUE $50;
+	SET 
+	%Do N=1 %TO &NBR_BIN_VARS.;
+	CASUSER.VAR_&&bin_vars&N..(RENAME=(&&bin_vars&N.._U_L=BIN_VALUE))
+	%END;
+	;
+	
+	LABEL BIN_VALUE='';
+	
+	RUN;
+
+%mend BIN_MY_VARS;
+
+%BIN_MY_VARS;
+
+proc cas;
+ /* session CASAUTO; */
+table.alterTable /
+caslib="CASUSER"
+name="G_CONT_TRANSFORMS_PLUS_BINS",
+drop={#foreach($selectedIntervals in $analysisVariables) "$selectedIntervals" #if( $foreach.hasNext ), #end #end}
+;RUN;
+QUIT;
+
+/* save information about our transformations so we can generate the required code later */
+proc casutil;
+    save incaslib="CASUSER" outcaslib="CASUSER" casdata="BIN_INFO" replace;
+run;QUIT;
+
+#end
+
+
+
+]]>
+    </CodeTemplate>
+</Task>

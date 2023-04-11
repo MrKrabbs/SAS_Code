@@ -1,0 +1,422 @@
+<?xml version="1.0" encoding="UTF-8"?><Task revision="1" schemaVersion="7.3">
+    <Registration>
+        <Name>Summary</Name>
+        <Description>The performs ordinal and one-hot encoding</Description>
+        <GUID>7fa29743-60da-4f6e-b0df-a68950db923a</GUID>
+        <Procedures>CARDINALITY</Procedures>
+        <Links>
+            <Link href="https://documentation.sas.com/?softwareId=STUDIOBASIC&amp;softwareVersion=01&amp;softwareContextId=tasks&amp;requestor=inapp">SAS Studio Task Reference Guide</Link>
+            <Link href="https://documentation.sas.com/?softwareId=ANVIYA&amp;softwareVersion=01&amp;softwareContextId=proc_cardinality&amp;requestor=inapp">The CARDINALITY Procedure</Link>
+            <Link href="http://support.sas.com/training/tutorial/viya/index.html">SAS Tutorials</Link>
+        </Links>
+    </Registration>
+    <Metadata>
+        <DataSources>
+            <DataSource libraryEngineInclude="CAS" indent="1" name="dataset" where="false">
+                    <Roles>
+			<Role exclude="ordvars" order="true" indent="1" minVars="0" maxVars="0" name="onehotvars" type="A">Select Variables for One-Hot-Encoding:</Role>
+			<Role exclude="onehotvars" indent="1" minVars="0" maxVars="0" name="ordvars" type="A">Select Variables for Ordinal-Encoding:</Role>
+	<!--		<Role exclude="vars" maxVars="1" minVars="0" name="freqVariable" type="N">Frequency count:</Role> -->
+                    </Roles>
+            </DataSource>
+        </DataSources>
+
+        <Options>
+            <Option inputType="string" name="dataTab">Data</Option> 
+            <Option inputType="string" name="optionsTab">Options</Option> 
+            <Option inputType="string" name="dataGroup">Data</Option> 
+           <Option inputType="string" name="rolesGroup">Roles</Option> 
+            <Option inputType="string" name="otherRolesGroup">Additional Roles</Option> 
+
+
+	    <Option defaultValue="1" inputType="radio" name="varsALL" variable="varsRadio">Summarize all variables</Option>
+	    <Option inputType="radio" name="varsSELECT" variable="varsRadio">Select variables to summarize</Option>
+
+            <Option inputType="string" name="optionsGroup">Methods</Option> 
+            <Option indent="0" inputType="string" name="maxlevelsLabel">Maximum levels to report per variable:</Option>
+            <Option defaultValue="1" indent="0" inputType="radio" name="maxlevelsRadioDefault" variable="maxlevelsRadio">Use 20 (default)</Option>
+            <Option defaultValue="0" indent="0" inputType="radio" name="maxlevelsRadioCustom" variable="maxlevelsRadio">Use custom value</Option>
+
+             <Option decimalPlaces="0" defaultValue="20" indent="1" inputType="numbertext" invalidMessage="Enter an integer greater than or equal to 10 and less than 255 for the maximum levels" maxValue="254" minValue="10" missingMessage="Enter an integer greater than or equal to 10 and less than 255 for the maximum levels" name="MAXLEVELS" promptMessage="Enter an integer greater than or equal to 10 and less than 255 for the maximum levels" rangeMessage="Enter an integer greater than or equal to 10 and less than 255 for the maximum levels" required="true">Maximum levels:</Option>
+            
+		<Option defaultValue="orderASC" inputType="combobox" name="orderCombo">Order of levels:</Option>
+		<Option inputType="string" name="orderASC" returnValue="asc">Ascending (default)</Option>
+		<Option inputType="string" name="orderDESC" returnValue="desc">Descending</Option>
+		<Option inputType="string" name="orderASCFORMAT" returnValue="ascfmt">Ascending formatted</Option>
+		<Option inputType="string" name="orderDESCFORMAT" returnValue="desfmt">Descending formatted</Option>
+
+            
+            
+            <Option inputType="string" name="statisticsGroup">Statistics</Option> 
+		    <Option defaultValue="defaultStats" inputType="combobox" name="selectStatCombo">Select statistics to display:</Option>
+		    <Option inputType="string" name="defaultStats">Default statistics</Option>
+		    <Option inputType="string" name="selectedStats">Selected statistics</Option>
+		    <Option inputType="string" name="allStats">All statistics</Option>
+
+                <Option inputType="string" name="statVarGroup">Variable Attributes</Option>
+                <Option inputType="string" name="statCardinalityGroup">Cardinality</Option>
+                <Option inputType="string" name="statDescGroup">Descriptive Statistics</Option>
+                <Option inputType="string" name="statTop1Group">Most Frequent Level</Option>
+                <Option inputType="string" name="statLastGroup">Last Seen Level</Option>
+                
+		<Option defaultValue="0" inputType="checkbox" name="dropOrigVars">Drop original variables used for One-Hot ?</Option>
+		<Option defaultValue="1" inputType="checkbox" name="show_TYPE_">Type of the raw values</Option>
+		<Option defaultValue="1" inputType="checkbox" name="show_RLEVEL_">Recommended level</Option>
+		<Option defaultValue="0" inputType="checkbox" name="show_ORDER_">Variable sort order</Option>
+		<Option defaultValue="1" inputType="checkbox" name="show_MORE_">Have more unreported levels</Option>
+		<Option defaultValue="1" inputType="checkbox" name="show_CARDINALITY_">Number of levels</Option>
+		
+		<Option defaultValue="0" inputType="checkbox" name="show_NOBS_">Number of observations</Option>
+		<Option defaultValue="0" inputType="checkbox" name="show_SUMFREQS_">Total summation of frequencies</Option>
+		<Option defaultValue="1" inputType="checkbox" name="show_NMISS_">Number of missing values</Option>
+		<Option defaultValue="0" inputType="checkbox" name="show_MISSFMT_">Format of the missing value</Option>
+		<Option defaultValue="0" inputType="checkbox" name="show_VISIBORD_">Percentage of the visible part of the report</Option>
+		<Option defaultValue="1" inputType="checkbox" name="show_MIN_">Minimum numeric value</Option>
+		<Option defaultValue="1" inputType="checkbox" name="show_MAX_">Maximum numeric value</Option>
+		<Option defaultValue="1" inputType="checkbox" name="show_MEAN_">Mean</Option>
+		<Option defaultValue="1" inputType="checkbox" name="show_STDDEV_">Standard deviation</Option>
+		<Option defaultValue="0" inputType="checkbox" name="show_SKEWNESS_">Skewness</Option>
+		<Option defaultValue="0" inputType="checkbox" name="show_KURTOSIS_">Kurtosis</Option>
+		<Option defaultValue="0" inputType="checkbox" name="show_MFREQ_">Maximum frequency</Option>
+		<Option defaultValue="0" inputType="checkbox" name="show_MFREQFOUNDLEVEL_">Found maximum frequency in the visible part of the report</Option>
+		<Option defaultValue="0" inputType="checkbox" name="show_MFREQNUM_">Numeric level with the maximum frequency</Option>
+		<Option defaultValue="0" inputType="checkbox" name="show_MFREQCHR_">Character level with the maximum frequency</Option>
+		<Option defaultValue="0" inputType="checkbox" name="show_MFREQCFMT_">Formatted level with the maximum frequency</Option>
+		<Option defaultValue="0" inputType="checkbox" name="show_LASTNUM_">Last raw numeric value (cutoff)</Option>
+		<Option defaultValue="0" inputType="checkbox" name="show_LASTCHR_">Last raw character value (cutoff)</Option>
+		<Option defaultValue="0" inputType="checkbox" name="show_LASTCFMT_">Last formatted value (cutoff)</Option>
+            
+            <Option inputType="string" name="outListingGroup">Listings</Option> 
+		    <Option inputType="string" name="summaryOutGroup">Variable Summary</Option> 
+		    <Option inputType="string" name="detailOutGroup">Level Details</Option> 
+            
+		<Option defaultValue="0" inputType="checkbox" name="showSummary">Show variables summary</Option>
+		<Option defaultValue="showAllSummaryChoice" indent="0" inputType="combobox" name="showSummaryCombo">Show:</Option>
+		<Option inputType="string" name="showSubsetSummaryChoice">Show subset of variable summary</Option>
+		<Option inputType="string" name="showAllSummaryChoice">Show all</Option>
+		<Option decimalPlaces="0" defaultValue="10" increment="10" indent="1" inputType="numstepper" invalidMessage="Enter an integer greater than 0 and less than 9999 for the number of observations to be shown" maxValue="9998" minValue="1" missingMessage="Enter an integer greater than 0 and less than 9999 for the number of observations to be shown" name="subsetSummaryNobs" promptMessage="Enter an integer greater than 0 and less than 9999 for the number of observations to be shown" rangeMessage="Enter an integer greater than 0 and less than 9999 for the number of observations to be shown" required="true">Number of variables to show:</Option>
+
+		<Option defaultValue="0" inputType="checkbox" name="showDetail">Show levels</Option>
+		<Option defaultValue="showSubsetDetailChoice" indent="0" inputType="combobox" name="showDetailCombo">Show:</Option>
+		<Option inputType="string" name="showSubsetDetailChoice">Show subset of levels</Option>
+		<Option inputType="string" name="showAllDetailChoice">Show all levels</Option>
+		<Option inputType="string" name="showAllVarsDetailChoice">Show all levels of specified variables</Option>
+		<Option decimalPlaces="0" defaultValue="20" increment="10" indent="1" inputType="numstepper" invalidMessage="Enter an integer greater than 0 and less than 9999 for the number of observations to be shown" maxValue="9998" minValue="1" missingMessage="Enter an integer greater than 0 and less than 9999 for the number of observations to be shown" name="subsetDetailNobs" promptMessage="Enter an integer greater than 0 and less than 9999 for the number of observations to be shown" rangeMessage="Enter an integer greater than 0 and less than 9999 for the number of observations to be shown" required="true">Number of levels to show:</Option>
+		<Option indent="1" inputType="select" multiple="true" name="varsToShow" required="true" sourceLink="vars">Select variables:</Option>
+
+
+            <Option inputType="string" name="outputTab">Output</Option>
+            <Option inputType="string" name="outputGroup">Output Data</Option>
+            <Option inputType="string" name="casOutputLibrefNote">The following tables must use a CAS engine libref:</Option>
+			<Option inputType="string" name="blankspace"></Option>
+<Option inputType="string" name="selectTableUsedInModel">Select table CASUSER.M_MSNG_......</Option>
+            <Option defaultValue="0" inputType="checkbox" name="outputSummaryDS">Create variable summary output table</Option>
+            <Option indent="1" inputType="outputdata" libraryEngineInclude="CAS" name="outputSummaryDSName" required="true" >Specify a CAS table:</Option>
+
+            <Option defaultValue="0" inputType="checkbox" name="outputDetailDS">Create levels detail output table</Option>
+            <Option indent="1" inputType="outputdata" libraryEngineInclude="CAS" name="outputDetailDSName" required="true" unique="true">Specify a CAS table:</Option>
+
+            <Option inputType="string" name="VariableSummary">Variable Summary</Option> 
+            <Option inputType="string" name="LevelDetails">Level Details</Option> 
+        </Options>
+    </Metadata>
+
+    <UI>
+        <Container option="dataTab">
+<OptionItem option="selectTableUsedInModel"/>
+                <DataItem data="dataset"/>          
+<OptionItem option="blankspace"/>
+<RoleItem role="onehotvars"/>
+<OptionItem option="blankspace"/>
+<RoleItem role="ordvars"/>
+<OptionItem option="blankspace"/>
+  <!--<OptionItem option="dropOrigVars"/>
+
+                 <OptionItem option="casOutputLibrefNote"/>
+                <OptionItem option="outputSummaryDSName"/>
+           <Group open="true" option="rolesGroup">
+              <OptionItem option="varsALL"/> 
+                <OptionItem option="varsSELECT"/>
+		
+            </Group>
+          <Group option="otherRolesGroup">
+                <RoleItem role="freqVariable"/>
+            </Group> -->
+        </Container>
+        
+ <!--       <Container option="optionsTab"> 
+            <Group open="true" option="optionsGroup">   
+            
+		<OptionItem option="maxlevelsLabel"/>
+		<OptionItem option="maxlevelsRadioDefault"/>
+		<OptionItem option="maxlevelsRadioCustom"/>
+                <OptionItem option="MAXLEVELS"/>
+
+		<OptionChoice option="orderCombo">
+		    <OptionItem option="orderASC"/>
+		    <OptionItem option="orderDESC"/>
+		    <OptionItem option="orderASCFORMAT"/>
+		    <OptionItem option="orderDESCFORMAT"/>
+                </OptionChoice>
+            </Group>
+
+	    <Group open="true" option="statisticsGroup">
+			<OptionChoice option="selectStatCombo">
+				<OptionItem option="defaultStats"/>
+				<OptionItem option="selectedStats"/>
+				<OptionItem option="allStats"/>
+			</OptionChoice>
+		
+			<Group open="true" option="statVarGroup">
+			    <OptionItem option="show_FMTWIDTH_"/>
+			    <OptionItem option="show_TYPE_"/>
+			</Group>
+
+			<Group open="true" option="statCardinalityGroup">
+			    <OptionItem option="show_RLEVEL_"/>
+			    <OptionItem option="show_ORDER_"/>
+			    <OptionItem option="show_MORE_"/>
+			    <OptionItem option="show_CARDINALITY_"/>
+			    <OptionItem option="show_NOBS_"/>
+			    <OptionItem option="show_SUMFREQS_"/>
+			    <OptionItem option="show_NMISS_"/>
+			    <OptionItem option="show_MISSFMT_"/>
+			    <OptionItem option="show_VISIBORD_"/>
+			</Group>
+			<Group open="true" option="statDescGroup">
+			    <OptionItem option="show_MIN_"/>
+			    <OptionItem option="show_MAX_"/>
+			    <OptionItem option="show_MEAN_"/>
+			    <OptionItem option="show_STDDEV_"/>
+			    <OptionItem option="show_SKEWNESS_"/>
+			    <OptionItem option="show_KURTOSIS_"/>
+			</Group>
+
+			<Group open="false" option="statTop1Group">
+			    <OptionItem option="show_MFREQ_"/>
+			    <OptionItem option="show_MFREQFOUNDLEVEL_"/>
+			    <OptionItem option="show_MFREQNUM_"/>
+			    <OptionItem option="show_MFREQCHR_"/>
+			    <OptionItem option="show_MFREQCFMT_"/>
+			</Group>
+
+			<Group open="false" option="statLastGroup">
+			    <OptionItem option="show_LASTNUM_"/>
+			    <OptionItem option="show_LASTCHR_"/>
+			    <OptionItem option="show_LASTCFMT_"/>
+			</Group>
+            </Group>
+
+            <Group open="true" option="outListingGroup">
+		    <Group open="true" option="summaryOutGroup">
+			<OptionChoice option="showSummaryCombo">
+				<OptionItem option="showSubsetSummaryChoice"/>
+				<OptionItem option="showAllSummaryChoice"/>
+			</OptionChoice>
+			<OptionItem option="subsetSummaryNobs"/>
+		    </Group>
+
+		    <Group open="true" option="detailOutGroup">
+			<OptionChoice option="showDetailCombo">
+				<OptionItem option="showSubsetDetailChoice"/>
+				<OptionItem option="showAllDetailChoice"/>
+				<OptionItem option="showAllVarsDetailChoice"/>
+			</OptionChoice>
+			<OptionItem option="subsetDetailNobs"/>
+			<OptionItem option="varsToShow"/>
+			<RoleItem role="vars2"/>
+		    </Group>
+            </Group>
+        </Container> 
+
+        <Container option="outputTab">  
+          
+                <OptionItem option="casOutputLibrefNote"/>
+                <OptionItem option="outputSummaryDSName"/>
+
+
+        </Container>-->
+    </UI>
+   
+    <Dependencies>
+      <!--  <Dependency condition="$onehotvarsRadio.equalsIgnoreCase('varsSELECT')">
+            <Target action="show" conditionResult="true" option="vars"/>
+            <Target action="hide" conditionResult="false" option="vars"/>
+        </Dependency>
+    
+	<Dependency condition="($maxlevelsRadio.equalsIgnoreCase('maxlevelsRadioCustom'))">
+	    <Target action="show" conditionResult="true" option="MAXLEVELS"/>
+	    <Target action="hide" conditionResult="false" option="MAXLEVELS"/>
+	</Dependency>
+    
+        <Dependency condition="($selectStatCombo=='selectedStats')">
+            <Target action="show" conditionResult="true" option="statVarGroup"/>
+            <Target action="hide" conditionResult="false" option="statVarGroup"/>
+
+            <Target action="show" conditionResult="true" option="statCardinalityGroup"/>
+            <Target action="hide" conditionResult="false" option="statCardinalityGroup"/>
+
+            <Target action="show" conditionResult="true" option="statDescGroup"/>
+            <Target action="hide" conditionResult="false" option="statDescGroup"/>
+
+            <Target action="show" conditionResult="true" option="statTop1Group"/>
+            <Target action="hide" conditionResult="false" option="statTop1Group"/>
+
+            <Target action="show" conditionResult="true" option="statLastGroup"/>
+            <Target action="hide" conditionResult="false" option="statLastGroup"/>
+        </Dependency>
+      
+    
+        <Dependency condition="($outputSummaryDS==1)">
+            <Target action="enable" conditionResult="true" option="outputSummaryDSName"/>
+            <Target action="disable" conditionResult="false" option="outputSummaryDSName"/>
+        </Dependency>
+
+	<Dependency condition="($showSummaryCombo == 'showSubsetSummaryChoice')">
+		<Target action="show" conditionResult="true" option="subsetSummaryNobs"/>
+		<Target action="hide" conditionResult="false" option="subsetSummaryNobs"/>
+	</Dependency>
+
+        <Dependency condition="($outputDetailDS==1)">
+            <Target action="enable" conditionResult="true" option="outputDetailDSName"/>
+            <Target action="disable" conditionResult="false" option="outputDetailDSName"/>
+        </Dependency>
+
+	<Dependency condition="($showDetailCombo == 'showSubsetDetailChoice')">
+		<Target action="show" conditionResult="true" option="subsetDetailNobs"/>
+		<Target action="hide" conditionResult="false" option="subsetDetailNobs"/>
+	</Dependency>
+	<Dependency condition="($showDetailCombo == 'showAllVarsDetailChoice') &amp;&amp; $onehotvarsRadio.equalsIgnoreCase('varsSELECT')">
+		<Target action="show" conditionResult="true" option="varsToShow"/>
+		<Target action="hide" conditionResult="false" option="varsToShow"/>
+	</Dependency>
+	<Dependency condition="($showDetailCombo == 'showAllVarsDetailChoice') &amp;&amp; $onehotvarsRadio.equalsIgnoreCase('varsALL')">
+		<Target action="show" conditionResult="true" option="vars2"/>
+		<Target action="hide" conditionResult="false" option="vars2"/>
+	</Dependency> -->
+    </Dependencies>
+
+    <Requirements>
+    </Requirements>
+    
+    
+    
+    <CodeTemplate>
+        <![CDATA[
+ods noproctitle;
+#if ($onehotvars.size() > 0)
+/*************************      Start of collecting level information *********************************************************************************/
+/* The purpose of the code below is to gather level information for our categorical variables. For one-hot encoding you must know the values your */
+/* categorical variables take. The code below does that and places the values inside macro variables */
+/******* Example: Car_Color = we need to know that car_color can take three different levels (values) of Red, green, blue ****************************/
+proc cardinality data=$dataset outcard=CASUSER.My_Summary 
+		out=CASUSER.My_Levels;
+	vars #foreach($item in $onehotvars ) $item#end;
+run;quit;
+
+DATA work.My_Levels2;
+	set CASUSER.MY_LEVELS(KEEP=_VARNAME_ _RAWCHAR_ _INDEX_ _CFMT_);
+	VARSEG=CATS(_VARNAME_, '_', compress(_CFMT_));
+	VARSEGLBL=CATS("'",_VARNAME_, '=', _CFMT_,"'");
+	VAR_VALUE=CATS("'", _CFMT_,"'");
+run;
+
+proc sql;
+select distinct _varname_ , substr(tranwrd(tranwrd(varseg,'-','_'),'.','_'),1,29),varseglbl, VAR_VALUE into: old_var_name1-, : new_var_name1- ,: new_label1-, : var_value1- from work.my_levels2;
+quit;
+
+/*************************      End of collecting level information *********************************************************************************/
+
+/****** Using the level information we collected above, we will now perform one-hot encoding for all levels of our categorical variables */
+/****** Using our example above of car_color, this step will create three new variables, car_color_Red, car_color_Green, car_color_Blue   */
+/***  all three of the newly created variables car_color_Red, car_color_Green, car_color_Blue will take a value of 0 or 1 depending on their car_color */
+%macro create_one_hot_vars;
+
+data CASUSER.one_hot;
+
+set $dataset;
+
+%DO I = 1 %TO &SQLOBS;
+
+LENGTH &&new_var_name&I. 8;
+&&new_var_name&I.= 0;
+
+LABEL &&new_var_name&I. = &&new_label&I. One_Hot; 
+
+IF &&old_var_name&I.= &&var_value&I. then &&new_var_name&I.=1;
+
+%END;
+
+RUN;
+
+%MEND create_one_hot_vars;
+
+%create_one_hot_vars;
+
+
+PROC DELETE DATA=work.My_Levels2;
+
+
+#end
+
+proc casutil; 
+ 	droptable incaslib="CASUSER" casdata="P_ORD_AND_ONEHOT_ENCODING" quiet; 
+run;QUIT; 
+
+/*************   Below will apply ordinal encoding for variables where it's appropriate determined by analyst     *******/
+/***** SAS Naming convention below might be confusing. "ONEHOT" below most people equate to one-hot-encoding ******/
+/***** it is NOT one-hot-encoding, it is label\ordinal encoding *********************************/
+/*****  How do we\SAS know the proper order for encoding? In our example we only use categorical variables that were derived from our binning */
+/***   in a previous step. When interval variables were binned we gave them logical names of 01, 02,03 and they naturally */
+/** went from small to larger. The encoding below works because our variables we chose to encode are already in logical order of small to larger */
+
+
+#if ($ordvars.size() > 0)
+proc cas;                                            
+    dataPreprocess.catTrans /   
+       copyAllVars=TRUE  
+        /*copyVars={"uniqueRecordID"} */
+		outVarsNamePrefix="ORD" /* ORD STANDS FOR ORDINAL ENCODING */
+
+inputs={ #foreach( $item in $ordvars ) "$item"#if( $foreach.hasNext),#end#end} method="ONEHOT"
+      	table={caslib="CASUSER",name="one_hot"},                     
+	    casOut={caslib="CASUSER",name="P_ORD_AND_ONEHOT_ENCODING", replace=true}; 
+    run;
+
+quit; 
+
+/******* Below will apply labels to our newly created ordinal variables ******************/
+proc cas;
+  /*session casauto;*/
+table.alterTable /
+caslib="CASUSER"
+columns={ #foreach( $item in $ordvars ) {name="ORD_$item",LABEL="Ordinal encoding for $item"}#if( $foreach.hasNext),#end#end}
+name="P_ORD_AND_ONEHOT_ENCODING"
+;RUN;
+QUIT;
+
+#end
+
+#if($dropOrigVars=='1') 
+/** The user has chosen to drop original variables after one-hot encoding was applied ***/
+proc cas;
+  /*session casauto; */
+table.alterTable /
+caslib="CASUSER"
+name="P_ORD_AND_ONEHOT_ENCODING",
+drop={#foreach($item in $onehotvars) "$item" #if( $foreach.hasNext ), #end #end}
+;RUN;
+QUIT;
+#end
+
+proc cas;
+   table.promote /            
+      caslib="CASUSER",
+      name="P_ORD_AND_ONEHOT_ENCODING";
+quit;
+
+
+
+]]>
+    </CodeTemplate>
+</Task>

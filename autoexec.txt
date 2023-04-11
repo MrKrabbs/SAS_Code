@@ -1,0 +1,242 @@
+cas mySession sessopts=(caslib=casuser timeout=1800 locale="en_US");
+caslib _all_ assign;
+LIBNAME ORIG_GLM "/export/home/&SYSUSERID./ORIG_GLM";
+LIBNAME ST_FCTRS "/export/home/&SYSUSERID./STATE_FACTORS";
+LIBNAME DATAFLDR "/export/home/&SYSUSERID./DATAFLDR";RUN;
+
+%MACRO PRNT(DSN,OBZ);
+
+		PROC PRINT DATA=&DSN(OBS=&OBZ);
+		RUN;
+QUIT;
+
+%MEND PRNT;
+
+*IF THE MACRO IS BLANK OR EMPTY IT WILL RETURN A VALUE OF 1. IF IT'S NOT EMPTY, WILL RETURN A VALUE OF ZERO;
+*EXECUTE MACRO LIKE THIS X=%ISBLANK(&CHECK);
+%macro isBlank(param);
+	%sysevalf(%superq(param)=, boolean)
+%mend isBlank;
+
+%macro runquit;
+	;
+	run;
+
+	quit;
+
+	%if &syserr. ne 0 %then
+		%do;
+			%abort cancel;
+		%end;
+%mend runquit;
+
+
+
+%macro varexist(dsn=class,varname=age);
+%local dsid vnum;
+%let vnum=0;
+%let dsid = %sysfunc(open(&dsn));
+%if &dsid %then %do;
+ %let vnum = %sysfunc(varnum(&dsid,&varname));
+ %let dsid = %sysfunc(close(&dsid));
+%end;
+&vnum
+%mend varexist;
+
+
+%macro understand_partition;
+%let validation_exist=0;
+%let testing_exist=0;
+
+%if %varexist(dsn=work.fs_out,varname=Validation) %then %let validation_exist = 1;
+%if %varexist(dsn=work.fs_out,varname=Testing) %then %let testing_exist = 2;
+
+%if %eval(&validation_exist. + &testing_exist.) > 0 %then 
+ %do;
+		%if %eval(&validation_exist. + &testing_exist.) = 1 %then
+		 %do;
+			proc datasets lib=work NOLIST;
+			modify FS_OUT;
+			RENAME Validation=Value;
+			quit;
+		 %end;
+
+		%if %eval(&validation_exist. + &testing_exist.) = 3 %then
+		 %do;
+			proc datasets lib=work NOLIST;
+			modify FS_OUT;
+			RENAME Testing=Value;
+			quit;
+		 %end;
+%end;
+
+%mend understand_partition;
+
+/* SIMPLY NEED TO RUN MACRO TO COMPILE FOR USE */
+
+/* Goal of Marco: Tag summarized premium (or some other metric) onto our Estimates table */
+
+/* OPTIONS MERROR SYMBOLGEN MLOGIC MPRINT SOURCE SOURCE2; */
+
+%macro UpdatePremiumAndFreq(Record_ID,GROUPSUM,Level1=,Value1=,Level2=,Value2=,Level3=,Value3=,Level4=,Value4=);
+
+%if &GROUPSUM=1 %then %do;
+
+proc sql noprint;
+	update work.Estimates2 as u set &TARGET_VAR.=(select sum(&TARGET_VAR.) from 
+		&SRC_TABLE. where &Level1="&Value1") , Exposure=(select 
+		count(*) from &SRC_TABLE. where &Level1="&Value1") where 
+		u.Record_ID=&Record_ID;
+quit;
+
+%end;
+
+%if &GROUPSUM=2 %then %do;
+
+proc sql noprint;
+	update work.Estimates2 as u set &TARGET_VAR.=(select sum(&TARGET_VAR.) from 
+		&SRC_TABLE. where &Level2="&Value2") , Exposure=(select 
+		count(*) from &SRC_TABLE. where &Level2="&Value2") where 
+		u.Record_ID=&Record_ID;
+quit;
+
+%end;
+%if &GROUPSUM=3 %then %do;
+
+proc sql noprint;
+	update work.Estimates2 as u set &TARGET_VAR.=(select sum(&TARGET_VAR.) from 
+		&SRC_TABLE. where &Level1="&Value1" and &Level2="&Value2") , 
+		Exposure=(select count(*) from &SRC_TABLE. 
+		where &Level1="&Value1" and &Level2="&Value2") where u.Record_ID=&Record_ID;
+quit;
+
+%end;
+%if &GROUPSUM=4 %then %do;
+
+proc sql noprint;
+	update work.Estimates2 as u set &TARGET_VAR.=(select sum(&TARGET_VAR.) from 
+		&SRC_TABLE. where &Level3="&Value3") , Exposure=(select 
+		count(*) from &SRC_TABLE. where &Level3="&Value3") where 
+		u.Record_ID=&Record_ID;
+quit;
+
+%end;
+%if &GROUPSUM=5 %then %do;
+
+proc sql noprint;
+	update work.Estimates2 as u set &TARGET_VAR.=(select sum(&TARGET_VAR.) from 
+		&SRC_TABLE. where &Level1="&Value1" and &Level3="&Value3") , 
+		Exposure=(select count(*) from &SRC_TABLE. 
+		where &Level1="&Value1" and &Level3="&Value3") where u.Record_ID=&Record_ID;
+quit;
+
+%end;
+%if &GROUPSUM=6 %then %do;
+
+proc sql noprint;
+	update work.Estimates2 as u set &TARGET_VAR.=(select sum(&TARGET_VAR.) from 
+		&SRC_TABLE. where &Level3="&Value3" and &Level2="&Value2") , 
+		Exposure=(select count(*) from &SRC_TABLE. 
+		where &Level3="&Value3" and &Level2="&Value2") where u.Record_ID=&Record_ID;
+quit;
+
+%end;
+%if &GROUPSUM=7 %then %do;
+
+proc sql noprint;
+	update work.Estimates2 as u set &TARGET_VAR.=(select sum(&TARGET_VAR.) from 
+		&SRC_TABLE. where &Level1="&Value1" and &Level2="&Value2" 
+		and &Level3="&Value3") , Exposure=(select count(*) from 
+		&SRC_TABLE. where &Level1="&Value1" and &Level2="&Value2" 
+		and &Level3="&Value3") where u.Record_ID=&Record_ID;
+quit;
+
+%end;
+%if &GROUPSUM=8 %then %do;
+
+proc sql noprint;
+	update work.Estimates2 as u set &TARGET_VAR.=(select sum(&TARGET_VAR.) from 
+		&SRC_TABLE. where &Level3="&Value4") , Exposure=(select 
+		count(*) from &SRC_TABLE. where &Level4="&Value4") where 
+		u.Record_ID=&Record_ID;
+quit;
+
+%end;
+%if &GROUPSUM=9 %then %do;
+
+proc sql noprint;
+	update work.Estimates2 as u set &TARGET_VAR.=(select sum(&TARGET_VAR.) from 
+		&SRC_TABLE. where &Level1="&Value1" and &Level4="&Value4") , 
+		Exposure=(select count(*) from &SRC_TABLE. 
+		where &Level1="&Value1" and &Level4="&Value4") where u.Record_ID=&Record_ID;
+quit;
+
+%end;
+%if &GROUPSUM=10 %then %do;
+
+proc sql noprint;
+	update work.Estimates2 as u set &TARGET_VAR.=(select sum(&TARGET_VAR.) from 
+		&SRC_TABLE. where &Level4="&Value4" and &Level2="&Value2") , 
+		Exposure=(select count(*) from &SRC_TABLE. 
+		where &Level4="&Value4" and &Level2="&Value2") where u.Record_ID=&Record_ID;
+quit;
+
+%end;
+%if &GROUPSUM=11 %then %do;
+
+proc sql noprint;
+	update work.Estimates2 as u set &TARGET_VAR.=(select sum(&TARGET_VAR.) from 
+		&SRC_TABLE. where &Level1="&Value1" and &Level2="&Value2" 
+		and &Level4="&Value4") , Exposure=(select count(*) from 
+		&SRC_TABLE. where &Level1="&Value1" and &Level2="&Value2" 
+		and &Level4="&Value4") where u.Record_ID=&Record_ID;
+quit;
+
+%end;
+%if &GROUPSUM=12 %then %do;
+
+proc sql noprint;
+	update work.Estimates2 as u set &TARGET_VAR.=(select sum(&TARGET_VAR.) from 
+		&SRC_TABLE. where &Level3="&Value3" and &Level4="&Value4") , 
+		Exposure=(select count(*) from &SRC_TABLE. 
+		where &Level3="&Value3" and &Level4="&Value4") where u.Record_ID=&Record_ID;
+quit;
+
+%end;
+%if &GROUPSUM=13 %then %do;
+
+proc sql noprint;
+	update work.Estimates2 as u set &TARGET_VAR.=(select sum(&TARGET_VAR.) from 
+		&SRC_TABLE. where  &Level1="&Value1" and &Level3="&Value3" 
+		and &Level4="&Value4") , Exposure=(select count(*) from 
+		&SRC_TABLE. where  &Level1="&Value1" and &Level3="&Value3" 
+		and &Level4="&Value4") where u.Record_ID=&Record_ID;
+quit;
+
+%end;
+%if &GROUPSUM=14 %then %do;
+
+proc sql noprint;
+	update work.Estimates2 as u set &TARGET_VAR.=(select sum(&TARGET_VAR.) from 
+		&SRC_TABLE. where &Level2="&Value2" and &Level3="&Value3" 
+		and &Level4="&Value4") , Exposure=(select count(*) from 
+		&SRC_TABLE. where  &Level2="&Value2" and &Level3="&Value3" 
+		and &Level4="&Value4") where u.Record_ID=&Record_ID;
+quit;
+
+%end;
+%if &GROUPSUM=15 %then %do;
+
+proc sql noprint;
+	update work.Estimates2 as u set &TARGET_VAR.=(select sum(&TARGET_VAR.) from 
+		&SRC_TABLE. where &Level1="&Value1" and &Level2="&Value2" 
+		and &Level3="&Value3" and &Level4="&Value4") , Exposure=(select count(*) from 
+		&SRC_TABLE. where  &Level1="&Value1" and &Level2="&Value2" 
+		and &Level3="&Value3" and &Level4="&Value4") where u.Record_ID=&Record_ID;
+quit;
+
+%end;
+
+%mend UpdatePremiumAndFreq;
+
+
