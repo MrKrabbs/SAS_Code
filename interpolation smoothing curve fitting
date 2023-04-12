@@ -1,0 +1,4 @@
+SAS has two procs and more that could be helpful
+proc loess and proc expand
+
+Does seem that proc expand is more suited for time data
