@@ -1,0 +1,163 @@
+I hope to process missing value inside of a single PROC CAS.   I have a table with columns:  store_id, salesUnit1-salesUnit_999.  Many of values for sales_unit1-salesUnits_999 are missing.   Is there CAS action to replace the missing values with 0?
+
+I found a workaround.  Setting outVarsNamePrefix to null/missing does the trick.   I was hoping something like outVarsRename = False. 
+
+ 
+
+            * impute missing values;
+
+            dataPreprocess.impute status=rc /
+
+               table={name="store_sales" caslib="Public"}
+
+               inputs=var_list
+
+               methodContinuous="median"
+
+               outVarsNamePrefix=""
+
+               casout={name = "store_sales_impute" caslib="Public" replace=True};
+
+             run;
+
+
+******************************************************************************************************************************
+PROC MDSUMMARY DATA = casuser.Cars ; 
+
+var Invoice length Wheelbase ; 
+
+output out = casuser.procmdsumm  ; 
+
+run ; 
+
+ 
+
+cas mysess listhistory;
+
+ 
+
+ 
+
+NOTE: 53: action simple.summary / table={name='CARS', caslib='CASUSER(brkinn)'}, inputs={{name='Invoice'}, {name='Length'}, 
+
+      {name='Wheelbase'}}, casOut={name='PROCMDSUMM', caslib='CASUSER(brkinn)', replace=true}; /* (SUCCESS) */
+	  
+************************************************************************************************************************
+
+Thanks Andy. I have a feeling you are right. I've used arrays in the past as in the following for dataPreprocess.rustat:
+
+{	"table":{"caslib":"CASUSER(sasdemo)","name":"totalsbymfr","groupBy":{"name":"manufacturer"},"where":"manufacturer='AIRBUS'"},
+
+"inputs":["manufacturer","time","total_records"],
+
+"requestPackages":[
+
+	{"locs":["mean","median","biweight"]},
+
+	{"scales":["std","gini","mad"]}
+
+	]
+
+}
+
+**************************************************************************************************************
+proc cas;
+
+  action aggregation.aggregate /       
+
+    table={caslib="casuser", name="cars", groupby={"type", "origin"}}
+
+    , varspecs={
+
+      {name="MSRP", agg="MEDIAN"}
+
+      , {name="msrp", summarysubset={"mean"}}
+
+    }
+
+    , casout={caslib="casuser", name="cars_aggr", replace=true}
+
+    , saveGroupbyFormat=FALSE
+
+  ;
+
+run;
+
+quit;
+*****************************************************************************************************
+data casuser.heart ; set sashelp.heart; run ; 
+
+ 
+
+proc cas; 
+
+simple.summary / table = { name = "heart" GroupBy = "Status" }     
+
+                inputs={"weight"},
+
+                 subset= { "MIN" "MAX" "MEAN" } 
+
+                 casout = {name = "heart_summ_byStatus", replace=true} ; 
+
+table.fetch / table = "heart_summ_byStatus" , index = false ; 
+
+
+
+/* default output names */
+
+aggregation.aggregate / 
+
+table={name="heart",caslib="casuser", groupby ={"Status" } }
+
+casout={name="heart_agg_byStatus", caslib='casuser', replace=true} 
+
+varspecs={  { agg = 'SUMMARY' names={'weight'  } , summarysubset={ 'min', 'mean', 'max' } }          } 
+
+;
+
+ 
+
+table.fetch / table = "heart_agg_byStatus" , index = false ;
+
+ 
+
+/* user specified columnnames  and savegroupbyformat=false */
+
+aggregation.aggregate / 
+
+table={name="heart",caslib="casuser", groupby ={"Status" } }
+
+casout={name="heart_byStatus_agg", caslib='casuser', replace=true} 
+
+varspecs={  { agg = 'SUMMARY' name='weight', summarysubset={ 'min', 'mean', 'max' } ,
+
+     columnnames={'wgt_min', 'wgt_max' , 'wgt_mean' } } 
+
+         } 
+
+savegroupbyformat=false ;
+
+ 
+
+table.fetch / table = "heart_byStatus_agg" , index = false ; 
+
+run; 
+**********************************************************************************************************************************
+PROC CAS;
+      session mycas;
+      dataPreprocess.transform /
+      table = {name = "blog_data" where="partition=0"}
+      requestPackages = {{inputs = ${var1, var2, var3, var4}
+                          function = {method = "standardize"
+                          arguments = {location = "mean"
+                                       scale = "std"}
+                                      }
+                         }}
+      casout = {name = "blog_std", replace=True}
+      outVarsNameGlobalPrefix = "STD"
+      copyVars={"id","partition","var1","var2","var3","var4"}
+      code={comment=True}
+      ;
+      run;
+quit;
+
