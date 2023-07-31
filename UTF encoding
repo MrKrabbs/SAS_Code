@@ -1,0 +1,17 @@
+7613832732: Mismatch in Column Length from SAS/Access to oracle
+
+ 
+
+It seems to me that your SAS system is using UTF-8 encoding. To avoid possible data truncation, when SAS sees 100 number of characters (FULL_POOL_NAME) from Oracle, it allocates 400 bytes for it, because each character can use up to 4 bytes in UTF8 encoding. The "over allocation" can happen in both directions, from Oracle to SAS, or from SAS to Oracle.
+
+ 
+
+If your data is all single byte characters, like English or LATIN-1, then you can use these libname options to force 1 byte per character behavior even SAS session is in multi-byte encoding like UTF-8. Here is the example:
+
+ 
+
+libname x oracle path=... user=... pwd=... dbserver_max_bytes=1 dbclient_max_bytes=1;
+
+ 
+
+This tells SAS to use 1 byte per character on database data, and SAS data. Please add these two options and give them a try to see if it resolves the issue, and let me know the result.
