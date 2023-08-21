@@ -1,0 +1,96 @@
+libname CARLOS 'C:\Users\matbai\OneDrive - SAS\Documents\CSM\Customers\Regions';
+
+
+
+/*DATA CARLOS.TEST;*/
+/*SET WORK.TEST_DATA;*/
+/*RUN;*/
+
+OPTIONS STIMER;
+
+data _null_;
+
+set CARLOS.TEST end=done;
+array char _character_;
+array num _numeric_;
+length field_name $32
+       field_value $50
+        field_index $ 32
+        field_type $ 4
+        product_type $ 32
+        ;
+        retain product_type 'Mortgage';
+        pd_end_dt=today();
+        format pd_end_dt yymmdd10.;
+if _n_=1 then do;
+  declare hash h(multidata:'y', ordered:'y');
+  h.definekey('field_index');
+  h.definedata('field_index', 
+               'field_name', 
+               'field_value',
+               'field_type',
+               'product_type',
+               'pd_end_dt');
+  h.definedone();
+end;
+
+do over char;  /* can't do this in sql */
+
+   field_name=vname(char); /* can't do this in sql */
+   field_value=char;
+   field_index=mtg_pool_id;
+   field_type='char';
+   
+rc=h.add();
+
+
+end;
+do over num;
+   field_name=vname(num);
+   field_value=left(input(num,32.4));
+   field_index=mtg_pool_id;
+   field_type='num';
+
+rc=h.add();
+end;
+if done then rc=h.output(dataset:'mtg_param_sql'); /* implicit output, not relevant here, but lack of output in SQL is a killer */
+run;
+
+
+/*PROC PRINT DATA=WORK.TEST_DATA(OBS=15);*/
+/*PROC PRINT DATA=WORK.mtg_param_sql(OBS=300);*/
+/**/
+/*PROC contents DATA=WORK.mtg_param_sql;*/
+
+
+/* STEP 2 BELOW WILL EXPLODE OUR RECORDS AND ADD THE TWO NEW VARIABLES CALLED FIELD_NAME AND FIELD_TYPE */
+proc sql noprint;
+create table WORK.VAR_NAMES_TBL as 
+    select name as field_name,type as field_type from dictionary.columns
+    where libname='CARLOS' and memname='TEST';
+/* Step 2 */
+create table exploded as select *  from CARLOS.TEST, work.VAR_NAMES_TBL;
+
+/* Step 3  must know names in advance or leverage a macro */
+create table work.final as
+		select mtg_pool_ID as field_index,  field_name, 
+			case
+				when field_name ='mtg_pool_ID'  then  mtg_pool_ID
+				when field_name ='dlq_stat'  then  dlq_stat
+				when field_name ='mtg_product'  then  mtg_product
+				when field_name ='term_grp'  then  term_grp
+				when field_name ='age_bin'  then  age_bin
+				when field_name ='ltv_bin'  then  ltv_bin
+				when field_name ='cbr_bin'  then  cbr_bin
+				when field_name ='TDR_Mod_Ind'  then  put(TDR_Mod_Ind,Best12.)
+				when field_name ='tdr_age'  then  tdr_age
+				when field_name ='pmi'  then  pmi
+				when field_name ='prop_bin'  then  prop_bin
+				when field_name ='PD'  then  put(PD,Best12.)
+				when field_name ='LGD'  then  put(LGD,Best12.)
+				when field_name ='LGDne'  then  put(LGDne,Best12.)
+				else 'Unknown'
+			end 
+		as field_value,field_type, "Mortgage" as product_type, Today() as pd_end_dt format=YYMMDD10. 
+			from work.exploded;
+quit;
