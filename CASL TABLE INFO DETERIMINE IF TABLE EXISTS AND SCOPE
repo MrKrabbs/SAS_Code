@@ -1,0 +1,21 @@
+%let caslib = PUBLIC;
+%let tbl = ABT;
+
+proc cas;
+	table.tableexists result=r / caslib="&caslib", name="&tbl";
+
+	if r.exists=0 then
+		do;
+			print "The CAS table %upcase(&tbl) does not exist.";
+		end;
+
+	if r.exists=1 then
+		do;
+			print "The CAS table %upcase(&tbl) has a session scope.";
+		end;
+
+	if r.exists=2 then
+		do;
+			print "The CAS table %upcase(&tbl) has a global scope.";
+		end;
+quit;
